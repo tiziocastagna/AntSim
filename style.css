@@ -1,0 +1,47 @@
+* {
+    box-sizing: border-box; /* Include padding and border in element's total width and height */
+}
+
+body {
+    margin: 0;
+    min-height: 100vh; /* Use min-height instead of fixed height */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background-color: #f8f8f8; /* A very light gray background for the page */
+    align-items: center;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(21, 30px);
+    grid-template-rows: repeat(21, 30px);
+}
+
+.grid div {
+    width: 30px;
+    height: 30px;
+    background-size: 100%, 100%;
+    /* shit to render the images */
+    background-size: cover; /* Ensures the image covers the entire div */
+    background-repeat: no-repeat; /* Prevents tiling */
+    background-position: center; /* Centers the image */
+    image-rendering: pixelated; /* Ensures sharp edges for pixel art */
+    image-rendering: crisp-edges; /* Ensures sharp edges for pixel art */
+}
+
+#control_bar {
+    width: 100%;
+    margin-top: 30px; /* Add some space above the bar */
+    padding: 10px 5px; /* Increased padding slightly */
+    background-color: #e0e0e0; /* Slightly darker gray */
+    text-align: center; /* Center the buttons */
+    border-top: 1px solid #cccccc; /* Thin top border */
+    border-radius: 5px; /* Rounded corners */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+#control_bar button {
+    margin: 0 5px; /* Add some space between buttons */
+    padding: 5px 10px;
+}
