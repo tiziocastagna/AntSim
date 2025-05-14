@@ -26,3 +26,8 @@ function play_backwards() {
 function play_forwards() {
     speed_up();
 }
+
+function toggle_xray() {
+    render_mode === "normal" ? render_mode = "chemical" : render_mode = "normal";
+    update();
+}

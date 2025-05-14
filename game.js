@@ -1,44 +1,41 @@
-let playerX = 0;
-let playerY = 0;
+const LEFT_WIDTH = 5;
+const RIGHT_WIDTH = 15;
+const UP_HEIGHT = 15;
+const DOWN_HEIGHT = 5;
 
-const LEFT_WIDTH = 100
-const RIGHT_WIDTH = 100
-const UP_HEIGHT = 50
-const DOWN_HEIGHT = 50
-
-// Ant Spawning Parameters
-const SPAWN_RADIUS = 20;         // Radius within which ants are most likely to spawn
-const MAX_SPAWN_PROB = 0.1;      // Max probability of spawning at the exact center (0,0) - Tunable
-const SPAWN_PROB_POWER = 3;      // How quickly probability drops off with distance (higher = faster drop)
+let colony;
 
 function setUpWorld(gridContainer) {
-    for(let i = -DOWN_HEIGHT; i < UP_HEIGHT; i++) {
-        for(let j = -LEFT_WIDTH / 2; j < RIGHT_WIDTH / 2; j++) {
-            if(i > -CAMERA_RADIUS - 1 && j > -CAMERA_RADIUS - 1 && i < CAMERA_RADIUS + 1 && j < CAMERA_RADIUS + 1) {
+    for(let i = -CAMERA_RADIUS; i <= CAMERA_RADIUS; i++) {
+        for(let l = -CAMERA_RADIUS; l <= CAMERA_RADIUS; l++) {
                 const visualSquare = document.createElement('div');
                 visualSquares.push(visualSquare);
                 gridContainer.appendChild(visualSquare);
-            }
-
-            tiles.push(new Tile(j, i));
-
-            // Spawn ants probabilistically, concentrated near the center (0,0)
-            const distance_from_center = Math.sqrt(j * j + i * i);
-            
-            // Only consider spawning within the defined radius
-            if (distance_from_center < SPAWN_RADIUS) {
-                // Probability decreases from MAX_SPAWN_PROB at center to 0 at SPAWN_RADIUS edge
-                const spawn_prob = MAX_SPAWN_PROB * Math.pow(1 - distance_from_center / SPAWN_RADIUS, SPAWN_PROB_POWER);
-                if (Math.random() < spawn_prob) {
-                    ants.push(new Ant(j, i, [0, 0]));
-                }
-            }
         }
     }
+
+    for(let i = -DOWN_HEIGHT; i <= UP_HEIGHT; i++) {
+        let row = []
+        for(let j = -LEFT_WIDTH; j <= RIGHT_WIDTH; j++) {
+            row.push(new Tile(j, i));
+        }
+        tiles.push(row);
+    }
+
+    spawnReward();
+    colony = new Colony(0, 0);
+
+    
+
+
     readyToRender = true;
     update();
 }
 
+function spawnReward() {
+    // const randomX_Y = getRandomX_Y();
+    createFoodPile(7, 7, 3);
+}
 
 function update() {
     if(readyToRender === true) {
@@ -47,30 +44,41 @@ function update() {
 }
 
 function moveUp() {
-    playerY--;
+    cameraY++;
     update();
 }
 
 function moveDown() {
-    playerY++;
+    cameraY--;
     update();
 }
 
 function moveLeft() {
-    playerX--;
+    cameraX--;
     update();
 }
 
 function moveRight() {
-    playerX++;
+    cameraX++;
     update();
 }
 
+let ticks = 0;
+
 function tick() {
-    for(let ant of ants) {
-        ant.explore();
+    let energySum = 0;
+    for(let ant of colony.ants) {
+        ant.step();
+        energySum += ant.energy;
     }
     update();
+    if(ticks % 10 === 0) { updateTiles(); }
+    if(ticks % 1000 === 0) {
+        colony.removeCorps();
+    }
+    ticks++;
+    // Restart
+    if(energySum < 0.1) { restart(); }
 }
 
 let tickspeed = 100;
@@ -80,10 +88,8 @@ function toggle_play() {
     if(interval) {
         clearInterval(interval);
         interval = null;
-        render_mode = "normal";
         update();
     } else {
-        render_mode = "chemical";
         interval = setInterval(tick, tickspeed);
     }
 }
@@ -102,4 +108,25 @@ function speed_down() {
         clearInterval(interval);
         interval = setInterval(tick, tickspeed);
     }
+}
+
+function restart() {
+    console.log("restart!!");
+    for(let ant of colony.ants) {
+        if(ant.alive) {
+            ant.die();
+        }
+    }
+    for(let i = 0; i < tiles.length; i++) {
+        for(let l = 0; l < tiles[i].length; l++) {
+            tiles[i][l].chemicalRGB = [0, 0, 0];
+            tiles[i][l].food_channel = 0;
+        }
+    }
+    spawnReward();
+    colony = new Colony(0, 0);
+}
+
+function toggle_showFood() {
+    render_mode === "food" ? render_mode = "normal" : render_mode = "food";
 }

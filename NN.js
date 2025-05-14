@@ -14,11 +14,19 @@ class Matrix {
     constructor(rows, cols) {
         this.rows = rows;
         this.cols = cols;
-        this.data = Array(this.rows).fill().map(() => Array(this.cols).fill(Math.random() * 2 - 1));
+        this.data = Array(this.rows).fill().map(() => Array(this.cols).fill(0));
+        for(let i = 0; i < this.rows; i++) {
+            for(let j = 0; j < this.cols; j++) {
+                this.data[i][j] = Math.random() * 2 - 1;
+            }
+        }
     }
     randomize() {
-        this.data = this.data.map(row => row.map(() => Math.random() * 2 - 1));
-    }
+        for(let i = 0; i < this.rows; i++) {
+            for(let j = 0; j < this.cols; j++) {
+                this.data[i][j] = Math.random() * 2 - 1;
+            }
+        }    }
 
     map(matrix, func) {
         let result = new Matrix(matrix.rows, matrix.cols);
@@ -43,7 +51,10 @@ class Layer {
         this.output_size = output_size;
         this.activation_function = activation_function;
         this.weights = new Matrix(output_size, input_size);
-        this.biases = new Array(output_size).fill().map(() => Math.random() * 2 - 1);
+        this.biases = [];
+        for(let i = 0; i < output_size; i++) {
+            this.biases.push(Math.random() * 2); 
+        }
     }
 
     feedForward(inputArray) {
@@ -85,5 +96,46 @@ class Network {
 
         return currentOutputArray;
     }
+    getParameters() {
+        let parameters = [];
+        for (let layer of this.layers) {
+            // Add all weight values
+            for (let i = 0; i < layer.weights.rows; i++) {
+                for (let j = 0; j < layer.weights.cols; j++) {
+                    parameters.push(layer.weights.data[i][j]);
+                }
+            }
+            // Add all bias values
+            parameters = parameters.concat(layer.biases);
+        }
+        return parameters;
+    }
 
+    parseParameters(parameters) {
+        let index = 0;
+        for (let layer of this.layers) {
+            // Parse weights
+            for (let i = 0; i < layer.weights.rows; i++) {
+                for (let j = 0; j < layer.weights.cols; j++) {
+                    if (index < parameters.length) {
+                        layer.weights.data[i][j] = parameters[index];
+                        index++;
+                    } else {
+                        console.error("Not enough parameters to parse for weights.");
+                        return; // Or throw an error
+                    }
+                }
+            }
+            // Parse biases
+            for (let i = 0; i < layer.biases.length; i++) {
+                if (index < parameters.length) {
+                    layer.biases[i] = parameters[index];
+                    index++;
+                } else {
+                    console.error("Not enough parameters to parse for biases.");
+                    return; // Or throw an error
+                }
+            }
+        }
+    }
 }

@@ -7,62 +7,36 @@ let render_mode = "normal"
 
 const CAMERA_RADIUS = 10
 
-function updateCamera() {
-    cameraX = playerX;
-    cameraY = playerY;
-}
-
-function render_normal() {
-    updateCamera();
-    for (let i = 0; i < CAMERA_RADIUS * 2 + 1; i++) {
-        for (let j = 0; j < CAMERA_RADIUS * 2 + 1; j++) {
-            const visualSquare = visualSquares[i * (CAMERA_RADIUS * 2 + 1) + j];
-
-            visualSquare.style.backgroundColor = 'white';
-            visualSquare.style.backgroundImage = 'none';
-
-            const isPlayer = i === CAMERA_RADIUS + playerX - cameraX && j === CAMERA_RADIUS + playerY - cameraY;
-            if(isPlayer) {
-                visualSquare.style.backgroundColor = 'red';
-                continue;
-            }
-
-            const square = getTile(j + cameraX - CAMERA_RADIUS, i + cameraY - CAMERA_RADIUS);
-            if(square) {
-                visualSquare.style.backgroundColor = square.render();
-            }
-        }
-    }
-}
-
-function render_chemical() {
-    updateCamera();
-    for (let i = 0; i < CAMERA_RADIUS * 2 + 1; i++) {
-        for (let j = 0; j < CAMERA_RADIUS * 2 + 1; j++) {
-            const visualSquare = visualSquares[i * (CAMERA_RADIUS * 2 + 1) + j];
-
-            visualSquare.style.backgroundColor = 'white';
-            visualSquare.style.backgroundImage = 'none';
-
-            const isPlayer = i === CAMERA_RADIUS + playerX - cameraX && j === CAMERA_RADIUS + playerY - cameraY;
-            if(isPlayer) {
-                visualSquare.style.backgroundColor = 'red';
-                continue;
-            }
-
-            const square = getTile(j + cameraX - CAMERA_RADIUS, i + cameraY - CAMERA_RADIUS);
-            if(square) {
-                visualSquare.style.backgroundColor = square.render_chemical();
-            }
-        }
-    } 
-}
 
 function render() {
-    if(render_mode == "normal") {
-        render_normal();
-    }
-    if(render_mode == "chemical") {
-        render_chemical();
+    for (let i = -CAMERA_RADIUS; i <= CAMERA_RADIUS; i++) {
+        for (let j = -CAMERA_RADIUS; j <= CAMERA_RADIUS; j++) {
+            const visualSquare = visualSquares[(CAMERA_RADIUS + i) * (CAMERA_RADIUS * 2 + 1) + j + CAMERA_RADIUS];
+
+            visualSquare.style.backgroundColor = 'white';
+            visualSquare.style.backgroundImage = 'none';
+
+            if(i === 0 && j === 0) {
+                visualSquare.style.backgroundColor = 'red';
+                continue;
+            }
+
+            const world_render_x = cameraX + j;
+            const world_render_y = cameraY - i;     // Show Up up and Down down
+            const square = getTile(world_render_x, world_render_y);
+            if(square) {
+                let color;
+                if(render_mode == "normal") {
+                    color = square.render();
+                }
+                if(render_mode == "chemical") {
+                    color = square.render_chemical();
+                }
+                if(render_mode == "food") {
+                    color = square.render_food();
+                }
+                visualSquare.style.backgroundColor = color;
+            }
+        }
     }
 }
