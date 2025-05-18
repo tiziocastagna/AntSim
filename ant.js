@@ -60,7 +60,8 @@ let food_home = 0;
 
 const BRAIN_STRUCTURE = [
     {type: "normal", input_size: 18, output_size: 4},
-    {type: "Blayer", input_size: 4, output_size: 16},
+    {type: "Blayer", input_size: 4, output_size: 30},
+    {type: "Blayer", input_size: 30, output_size: 16},
     {type: "Blayer", input_size: 16, output_size: 4},
     {type: "normal", input_size: 4, output_size: 14}
 ];
@@ -289,22 +290,22 @@ class Ant {
             this.turn_right();
         } else if(maxIndex === 9) {
             this.removeEnergy(4);
-            this.getDirectionPreferences(0, "follow", leftTile, frontTile, rightTile);
+            this.move(this.getDirectionPreferences(0, "follow", leftTile, frontTile, rightTile)[0]);
         } else if(maxIndex === 10) {
             this.removeEnergy(4);
-            this.getDirectionPreferences(1, "follow", leftTile, frontTile, rightTile);
+            this.move(this.getDirectionPreferences(1, "follow", leftTile, frontTile, rightTile)[0]);
         } else if(maxIndex === 11) {
             this.removeEnergy(4);
-            this.getDirectionPreferences(2, "follow", leftTile, frontTile, rightTile);
+            this.move(this.getDirectionPreferences(2, "follow", leftTile, frontTile, rightTile)[0]);
         } else if(maxIndex === 12) {
             this.removeEnergy(4);
-            this.getDirectionPreferences(0, "avoid", leftTile, frontTile, rightTile);
+            this.move(this.getDirectionPreferences(0, "avoid", leftTile, frontTile, rightTile)[0]);
         } else if(maxIndex === 13) {
             this.removeEnergy(4);
-            this.getDirectionPreferences(1, "avoid", leftTile, frontTile, rightTile);
+            this.move(this.getDirectionPreferences(1, "avoid", leftTile, frontTile, rightTile)[0]);
         } else if(maxIndex === 14) {
             this.removeEnergy(4);
-            this.getDirectionPreferences(2, "avoid", leftTile, frontTile, rightTile);
+            this.move(this.getDirectionPreferences(2, "avoid", leftTile, frontTile, rightTile)[0]);
         }
         this.removeEnergy(1);
     }
@@ -1271,6 +1272,7 @@ class Colony {
 
         const ants_to_remove = this.ants.length - MAX_ANTS;
         for(let i = 0; i < ants_to_remove; i++) {
+            this.ants[this.ants.length - 1].die();
             this.ants.pop();
         }
         this.livingAnts = this.ants.length;
