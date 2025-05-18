@@ -26,12 +26,7 @@ class Matrix {
             for(let j = 0; j < this.cols; j++) {
                 this.data[i][j] = Math.random() * 2 - 1;
             }
-        }    }
-
-    map(matrix, func) {
-        let result = new Matrix(matrix.rows, matrix.cols);
-        result.data = matrix.data.map((row, i) => row.map((val, j) => func(val, i, j)));
-        return result;
+        }
     }
 
     transform(vector) {
@@ -53,7 +48,7 @@ class Layer {
         this.weights = new Matrix(output_size, input_size);
         this.biases = [];
         for(let i = 0; i < output_size; i++) {
-            this.biases.push(Math.random() * 2); 
+            this.biases.push(Math.random() * 2 - 1); 
         }
     }
 

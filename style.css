@@ -4,12 +4,10 @@
 
 body {
     margin: 0;
-    min-height: 100vh; /* Use min-height instead of fixed height */
+    height: 100vh;
     display: flex;
     flex-direction: column;
-    justify-content: center;
     background-color: #f8f8f8; /* A very light gray background for the page */
-    align-items: center;
 }
 
 .grid {
@@ -21,18 +19,14 @@ body {
 .grid div {
     width: 30px;
     height: 30px;
-    background-size: 100%, 100%;
-    /* shit to render the images */
     background-size: cover; /* Ensures the image covers the entire div */
     background-repeat: no-repeat; /* Prevents tiling */
     background-position: center; /* Centers the image */
-    image-rendering: pixelated; /* Ensures sharp edges for pixel art */
     image-rendering: crisp-edges; /* Ensures sharp edges for pixel art */
 }
 
 #control_bar {
     width: 100%;
-    margin-top: 30px; /* Add some space above the bar */
     padding: 10px 5px; /* Increased padding slightly */
     background-color: #e0e0e0; /* Slightly darker gray */
     text-align: center; /* Center the buttons */
@@ -44,4 +38,50 @@ body {
 #control_bar button {
     margin: 0 5px; /* Add some space between buttons */
     padding: 5px 10px;
+}
+
+#grid_container {
+    width: 630px;
+    height: 630px;
+    display: flex;
+    justify-self: center;
+}
+
+#main {
+    width: 100%;
+    margin-bottom: 10px;
+    margin-top: 10px;
+    height: 90%;
+}
+
+#settings {
+    display: none;
+    border: 1px solid black;
+    padding: 10px;
+    margin-top: 10px;
+    background-color: #f0f0f0;
+    width: 300px;
+    position: absolute;
+    top: 50px;
+    left: 10px;
+    z-index: 100;
+}
+
+#world_sizes {
+    border: 1px solid black;
+    padding: 3px;
+    margin: 3px;
+}
+
+#noise {
+    display: flex;
+    flex-direction: column;
+}
+
+#settings input {
+    width: 35px;
+}
+
+table {
+    width: 100%;
 }

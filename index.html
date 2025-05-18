@@ -6,14 +6,47 @@
     <script src="./tile.js"></script>
     <script src="./game.js"></script>
     <script src="./NN.js"></script>
+    <script src="BNN.js"></script>
     <script src="ant.js"></script>
     <script src="./app.js"></script>
 </head>
 <body>
-    <div id="game_grid" class="grid"></div>
+    <div id="main">
+        <div id="settings">
+            <div id="world_sizes">
+                <table>
+                    <tr>
+                        <th> UP </th>
+                        <th> DOWN </th>
+                        <th> LEFT </th>
+                        <th> RIGHT </th>
+                    </tr>
+                    <tr>
+                        <th> <input onchange=changeWorldUp() id="up" value="10"> </th>
+                        <th> <input onchange=changeWorldDown() id="down" value="10"> </th>
+                        <th> <input onchange=changeWorldLeft() id="left" value="10"> </th>
+                        <th> <input onchange=changeWorldRight() id="right" value="10"> </th>
+                    </tr>
+                </table>
+            </div>
+            <div id="tickspeed"> APX. TICKSPEED: 100 </div>
+            <div id="initial_population_container"> INITIAL POPULATION: <input id="initial_population"> </div>
+            <div id="max_population_container"> MAX POPULATION: <input id="max_population"> </div>
+            <div id="population"> POPULATION: </div>
+            <div id="mutation_strength_container"> MUTATION STRENGTH: <input id="mutation_strength"> </div>
+            <div id="mutation_chance_container"> MUTATION CHANCE: <input id="mutation_chance"> </div>
+            <div id="noise">
+                <div id="noise_in_container">NOISE IN: <input id="noise_in"> </div>
+                <div id="noise_out_container">NOISE OUT: <input id="noise_out"></div>
+            </div>
+        </div>
+        <div id="grid_container">
+            <div id="game_grid" class="grid"></div>
+        </div>
+    </div>
     <div id="control_bar">
-        <button id="settings_button">⚙</button>
-        <button id="settings_button" onclick=restart()>⟳</button>
+        <button id="settings_button" onclick=settings_button()>⚙</button>
+        <button id="restart_button" onclick=restart()>⟳</button>
         <button id="step_backward_button" onclick=play_backwards()>&lt;&lt;</button> 
         <button id="play_stop_button" onclick=play_stop()>▶</button>
         <button id="step_forward_button" onclick=play_forwards()>&gt;&gt;</button>

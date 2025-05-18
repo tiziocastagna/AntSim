@@ -1,4 +1,4 @@
-const tiles = []
+let tiles = [];
 
 function colorSum(a, b) {
     const r = a[0] + b[0] > 255 ? 255 : a[0] + b[0];
@@ -123,7 +123,7 @@ function getRandomX_Y() {
 }
 
 const WEIGHT_NEIGHBOURS = 1;
-const WEIGHT_CENTER = 9;
+const WEIGHT_CENTER = 80;
 const WEIGHT_SUM = WEIGHT_NEIGHBOURS * 4 + WEIGHT_CENTER
 const MULT_NEIGHBOURS = WEIGHT_NEIGHBOURS / WEIGHT_SUM;
 const MULT_CENTER = WEIGHT_CENTER / WEIGHT_SUM;
@@ -166,8 +166,8 @@ function updateTiles() {
     for(let i = 0; i < max_i; i++) {
         for(let j = 0; j < max_j; j++) {
             const tile = tiles[i][j];
-            tile.chemicalRGB = [0, 0, 0];
             tile.food_channel = 0;
+            tile.chemicalRGB = [0, 0, 0];
             tile.addChemical(0, tile.chemicalRGB_buffer[0] * FADING_CONSTANT);
             tile.addChemical(1, tile.chemicalRGB_buffer[1] * FADING_CONSTANT);
             tile.addChemical(2, tile.chemicalRGB_buffer[2] * FADING_CONSTANT);
@@ -175,7 +175,9 @@ function updateTiles() {
             tile.chemicalRGB_buffer = [0, 0, 0];
             tile.food_channel_buffer = 0;
             foodInPlay += tile.food_channel;
+            if(tile.food_channel < 0.1) {
+                tile.food_channel += 0.1;
+            }
         }
     }
-    if(foodInPlay < 4000) { spawnReward(); }
 }

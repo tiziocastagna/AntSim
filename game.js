@@ -1,9 +1,10 @@
-const LEFT_WIDTH = 5;
-const RIGHT_WIDTH = 15;
-const UP_HEIGHT = 15;
-const DOWN_HEIGHT = 5;
+let LEFT_WIDTH = 10;
+let RIGHT_WIDTH = 10;
+let UP_HEIGHT = 10;
+let DOWN_HEIGHT = 10;
 
 let colony;
+let MAX_ANTS = 30;
 
 function setUpWorld(gridContainer) {
     for(let i = -CAMERA_RADIUS; i <= CAMERA_RADIUS; i++) {
@@ -14,6 +15,16 @@ function setUpWorld(gridContainer) {
         }
     }
 
+    buildTiles();
+
+    colony = new Colony(0, 0);
+
+    readyToRender = true;
+    update();
+}
+
+function buildTiles() {
+    tiles = [];
     for(let i = -DOWN_HEIGHT; i <= UP_HEIGHT; i++) {
         let row = []
         for(let j = -LEFT_WIDTH; j <= RIGHT_WIDTH; j++) {
@@ -21,20 +32,6 @@ function setUpWorld(gridContainer) {
         }
         tiles.push(row);
     }
-
-    spawnReward();
-    colony = new Colony(0, 0);
-
-    
-
-
-    readyToRender = true;
-    update();
-}
-
-function spawnReward() {
-    // const randomX_Y = getRandomX_Y();
-    createFoodPile(7, 7, 3);
 }
 
 function update() {
@@ -71,11 +68,14 @@ function tick() {
         ant.step();
         energySum += ant.energy;
     }
-    update();
-    if(ticks % 10 === 0) { updateTiles(); }
+    if(ticks % 10 === 0) {
+        updateTiles();
+        population.innerHTML = "POPULATION: " + colony.livingAnts;
+    }
     if(ticks % 1000 === 0) {
         colony.removeCorps();
     }
+    update();
     ticks++;
     // Restart
     if(energySum < 0.1) { restart(); }
@@ -91,14 +91,23 @@ function toggle_play() {
         update();
     } else {
         interval = setInterval(tick, tickspeed);
+        updateTickSpeedLable();
     }
 }
 
 function speed_up() {
     if(interval) {
-        tickspeed *= 0.9;
+        if(tickspeed * 0.9 < 1) {
+            tickspeed = 1;
+            return;
+        } else if(tickspeed * 0.9 <= 10) {
+            tickspeed -= 1;
+        } else if(tickspeed ) {
+            tickspeed *= 0.9;
+        }
         clearInterval(interval);
         interval = setInterval(tick, tickspeed);
+        updateTickSpeedLable();
     }
 }
 
@@ -107,6 +116,7 @@ function speed_down() {
         tickspeed *= 1.1;
         clearInterval(interval);
         interval = setInterval(tick, tickspeed);
+        updateTickSpeedLable();
     }
 }
 
@@ -123,10 +133,54 @@ function restart() {
             tiles[i][l].food_channel = 0;
         }
     }
-    spawnReward();
     colony = new Colony(0, 0);
 }
 
 function toggle_showFood() {
-    render_mode === "food" ? render_mode = "normal" : render_mode = "food";
+    render_mode != "food" ? render_mode = "food" : render_mode = "normal";
+    update();   
+}
+
+function changeWorldUp() {
+    const input = document.getElementById("up");
+    if(parseInt(input.value) !== NaN && parseInt(input.value) >= 0) {
+        UP_HEIGHT = parseInt(input.value);
+        buildTiles();
+        update();
+    } else {
+        input.value = UP_HEIGHT;
+    }
+}
+
+function changeWorldDown() {
+    const input = document.getElementById("down");
+    if(parseInt(input.value) !== NaN && parseInt(input.value) >= 0) {
+        DOWN_HEIGHT = parseInt(input.value);
+        buildTiles();
+        update();
+    } else {
+        input.value = DOWN_HEIGHT;
+    }
+}
+
+function changeWorldLeft() {
+    const input = document.getElementById("left");
+    if(parseInt(input.value) !== NaN && parseInt(input.value) >= 0) {
+        LEFT_WIDTH = parseInt(input.value);
+        buildTiles();
+        update();
+    } else {
+        input.value = LEFT_WIDTH;
+    }
+}
+
+function changeWorldRight() {
+    const input = document.getElementById("right");
+    if(parseInt(input.value) !== NaN && parseInt(input.value) >= 0) {
+        RIGHT_WIDTH = parseInt(input.value);
+        buildTiles();
+        update();   
+    } else {
+        input.value = RIGHT_WIDTH;
+    }
 }

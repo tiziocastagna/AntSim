@@ -3,9 +3,9 @@ let cameraX = 0;
 let cameraY = 0;
 let readyToRender = false;
 
-let render_mode = "normal"
+let render_mode = "normal";
 
-const CAMERA_RADIUS = 10
+const CAMERA_RADIUS = 10;       // DUE to grid size, pay attention if changing
 
 
 function render() {
