@@ -1,10 +1,10 @@
-let LEFT_WIDTH = 10;
-let RIGHT_WIDTH = 10;
-let UP_HEIGHT = 10;
-let DOWN_HEIGHT = 10;
+let LEFT_WIDTH = 50;
+let RIGHT_WIDTH = 50;
+let UP_HEIGHT = 50;
+let DOWN_HEIGHT = 50;
 
 let colony;
-let MAX_ANTS = 30;
+let MAX_ANTS = 1000;
 
 function setUpWorld(gridContainer) {
     for(let i = -CAMERA_RADIUS; i <= CAMERA_RADIUS; i++) {
@@ -63,22 +63,17 @@ function moveRight() {
 let ticks = 0;
 
 function tick() {
-    let energySum = 0;
     for(let ant of colony.ants) {
         ant.step();
-        energySum += ant.energy;
     }
     if(ticks % 10 === 0) {
-        updateTiles();
+        diffuse ? updateTiles() : only_fade();
         population.innerHTML = "POPULATION: " + colony.livingAnts;
-    }
-    if(ticks % 1000 === 0) {
-        colony.removeCorps();
     }
     update();
     ticks++;
     // Restart
-    if(energySum < 0.1) { restart(); }
+    if(colony.livingAnts === 0) { restart(); }
 }
 
 let tickspeed = 100;
@@ -182,5 +177,19 @@ function changeWorldRight() {
         update();   
     } else {
         input.value = RIGHT_WIDTH;
+    }
+}
+
+
+// NOT YET IMPLEMENTED
+class Simulation {
+    colony;
+    constructor() {
+        this.colony = new Colony(0, 0);
+    }
+    tick() {
+        for(let ant of this.colony.ants) {
+            ant.step();
+        }
     }
 }

@@ -15,6 +15,9 @@ function scaleColor(color, factor) {
     return [color[0] * factor, color[1] * factor, color[2] * factor]
 }
 
+let maxFood = 30;
+let foodRefill = 1;
+
 class Tile {
     x;
     y;
@@ -31,8 +34,8 @@ class Tile {
         this.x = x;
         this.y = y;
         
-        this.color = [34 + Math.random() * 10, 139 + Math.random() * 10, 39 + Math.random() * 10];    // random shade of green
-        this.food_color = [255 - Math.random() * 10, 239 + Math.random() * 20 - 10, Math.random() * 20];
+        this.color = [34 + Math.random() * 10, 139 + Math.random() * 10, 39 + Math.random() * 10];
+        this.food_color = [255, 239, 10];
         this.chemicalRGB = [0, 0, 0];
         this.food_channel = 0;
         this.food_channel_buffer = 0;
@@ -74,15 +77,15 @@ class Tile {
     }
     render() {
         if(this.x == 0 && this.y == 0) { return "brown"; }      // Anthill at the center
-        else if(this.ant_number > 0) { return "black"; }
+        else if(this.ant_number > 0 && showAnts) { return "black"; }
         else { return arrayToRGB(this.color); }
     }
     render_chemical() {
-        if(this.ant_number > 0) { return "white"; }
+        if(this.ant_number > 0 && showAnts) { return "white"; }
         return "rgb(" + this.chemicalRGB[0] + "," + this.chemicalRGB[1] + "," + this.chemicalRGB[2] + ")";
     }
     render_food() {
-        if(this.ant_number > 0) { return "white"; }
+        if(this.ant_number > 0 && showAnts) { return "white"; }
         return arrayToRGB(scaleColor(this.food_color, this.food_channel / 255));
     }
 }
@@ -122,13 +125,32 @@ function getRandomX_Y() {
     return [x, y];
 }
 
+let diffuse = false;
 const WEIGHT_NEIGHBOURS = 1;
 const WEIGHT_CENTER = 80;
 const WEIGHT_SUM = WEIGHT_NEIGHBOURS * 4 + WEIGHT_CENTER
 const MULT_NEIGHBOURS = WEIGHT_NEIGHBOURS / WEIGHT_SUM;
 const MULT_CENTER = WEIGHT_CENTER / WEIGHT_SUM;
 
-const FADING_CONSTANT = 0.99;
+let FADING_CONSTANT = 0.95;
+
+function only_fade() {
+    const max_i = tiles.length;
+    const max_j = tiles[0].length;
+    for(let i = 0; i < max_i; i++) {
+        for(let j = 0; j < max_j; j++) {
+            const tile = tiles[i][j];
+            tile.chemicalRGB[0] *= FADING_CONSTANT;
+            tile.chemicalRGB[1] *= FADING_CONSTANT;
+            tile.chemicalRGB[2] *= FADING_CONSTANT;
+            if(tile.food_channel < maxFood) {
+                tile.food_channel += foodRefill;
+            }
+            // TODO: find a more elegant solution
+            if(tile.ant_number < 0) {tile.ant_number = 0;}
+        }
+    }
+}
 
 function updateTiles() {
     let foodInPlay = 0;
@@ -175,9 +197,11 @@ function updateTiles() {
             tile.chemicalRGB_buffer = [0, 0, 0];
             tile.food_channel_buffer = 0;
             foodInPlay += tile.food_channel;
-            if(tile.food_channel < 0.1) {
-                tile.food_channel += 0.1;
+            if(tile.food_channel < maxFood) {
+                tile.food_channel += foodRefill;
             }
+            // TODO: find a more elegant solution
+            if(tile.ant_number < 0) {tile.ant_number = 0;}
         }
     }
 }

@@ -22,17 +22,24 @@
                         <th> RIGHT </th>
                     </tr>
                     <tr>
-                        <th> <input onchange=changeWorldUp() id="up" value="10"> </th>
-                        <th> <input onchange=changeWorldDown() id="down" value="10"> </th>
-                        <th> <input onchange=changeWorldLeft() id="left" value="10"> </th>
-                        <th> <input onchange=changeWorldRight() id="right" value="10"> </th>
+                        <th> <input onchange=changeWorldUp() id="up" value="50"> </th>
+                        <th> <input onchange=changeWorldDown() id="down" value="50"> </th>
+                        <th> <input onchange=changeWorldLeft() id="left" value="50"> </th>
+                        <th> <input onchange=changeWorldRight() id="right" value="50"> </th>
                     </tr>
                 </table>
             </div>
             <div id="tickspeed"> APX. TICKSPEED: 100 </div>
+            <div> FADING SPEED: <input id="fading_speed"> </div>
+            <div> DIFFUSION: <input id="diffuse" type="checkbox"> </div>
             <div id="initial_population_container"> INITIAL POPULATION: <input id="initial_population"> </div>
             <div id="max_population_container"> MAX POPULATION: <input id="max_population"> </div>
             <div id="population"> POPULATION: </div>
+            <div> INITIAL ENERGY: <input id="initial_energy"> </div>
+            <div> SHOW ANTS: <input type="checkbox" id="show_ants" checked></div>
+            <div id="max_food_container"> MAX FOOD PER TILE: <input id="max_food"> </div>
+            <div id="food_refill_container"> FOOD REFILL: <input id="food_refill"> </div>
+            <div id="food_to_reproduce_container"> FOOD TO REPRODUCE: <input id="food_to_reproduce"> </div>
             <div id="mutation_strength_container"> MUTATION STRENGTH: <input id="mutation_strength"> </div>
             <div id="mutation_chance_container"> MUTATION CHANCE: <input id="mutation_chance"> </div>
             <div id="noise">

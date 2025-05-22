@@ -38,6 +38,15 @@ class Matrix {
         }
         return result;
     }
+    flatten() {
+        let result = [];
+        for(let i = 0; i < this.cols; i++) {
+            for(let j = 0; j < this.rows; j++) {
+                result.push(this.data[j][i]);
+            }
+        }
+        return result;
+    }
 }
 
 class Layer {
@@ -129,6 +138,79 @@ class Network {
                 } else {
                     console.error("Not enough parameters to parse for biases.");
                     return; // Or throw an error
+                }
+            }
+        }
+    }
+}
+
+class Clayer {
+    size;
+    kernals;
+    constructor(size, kernals) {
+        this.size = size;
+        this.kernal_number = kernals;
+        this.kernals = new Array(kernals).fill(new Matrix(size, size));
+        this.random();
+        this.margin = Math.floor(size / 2 - 1);
+    }
+    random() {
+        for(let k = 0; k < this.kernal_number; k++) {
+            for(let i = 0; i < this.size; i++) {
+                for(let j = 0; j < this.size; j++) {
+                    this.kernals[k].data[i][j] = Math.random() * 2 - 1;
+                }
+            }
+        }
+    }
+
+    feedForward(inputSignal) {
+        if(!inputSignal instanceof Matrix) {console.error("Incorrect input type"); return;}
+        const inputWidth = inputSignal.data.length;
+        const inputHeight = inputSignal.data[0].length;
+        
+        let outputSignal = new Array(this.kernal_number).fill(new Matrix(inputWidth, inputHeight));
+        for(let i = 0; i < inputWidth; i++) {
+            for(let j = 0; j < inputHeight; j++) {
+                for(let k = 0; k < this.kernal_number; k++) {
+                    for(let k1 = -this.margin; k1 <= this.margin; k1++) {
+                        for(let k2 = -this.margin; k2 < -this.margin; k2++) {
+                            if(i + k1 < 0 || i + k1 >= inputWidth || j + k2 < 0 || j + k2 >= inputHeight)
+                            outputSignal[k].data[i][j] += inputSignal.data[i + k1][j + k2] * this.kernals[k].data[k1][k2];
+                        }
+                    }
+                }
+            }
+        }
+        let result = [];
+        for(let i = 0; i < outputSignal.length; i++) {
+            result = result.concat(outputSignal[i].flatten());
+        }
+        return result;
+    }
+    getParameters() {
+        let parameters = [];
+        for (let k = 0; k < this.kernals.length; k++) {
+            for (let i = 0; i < this.kernals[k].length; i++) {
+                for (let j = 0; j < this.kernals[k][i].length; j++) {
+                    parameters.push(this.kernals[k][i][j]);
+                }
+            }
+        }
+        return parameters;
+    }
+    parseParameters(parameters) {
+        if(parameters.length != this.kernal_number) {
+            console.error("Not enough parameters to parse for kernal.");
+            return;
+        }
+        let index = 0;
+        for(let k = 0; k < this.kernals.length; k++) {
+            for(let i = 0; i < this.kernals[k].length; i++) {
+                for(let j = 0; j < this.kernals[k][i].length; j++) {
+                    if(index < parameters.length) {
+                        this.kernals[k][i][j] = parameters[index];
+                    }
                 }
             }
         }

@@ -22,11 +22,36 @@ let play_button;
 
 let population;
 
+let showAnts = true;
+
 window.onload = function() {
     showTickSpeed = document.getElementById("tickspeed");
     showSettings = document.getElementById("settings");
     population = document.getElementById("population");
     play_button = document.getElementById("play_stop_button");
+
+    let fade = document.getElementById("fading_speed");
+    fade.value = FADING_CONSTANT;
+    fade.onchange = function() {
+        if(parseFloat(fade.value) !== NaN && parseFloat(fade.value) >= 0) {
+            FADING_CONSTANT = parseFloat(fade.value);
+        } else {
+            fade.value = FADING_CONSTANT;
+        }
+    };
+
+    let diffuse_check = document.getElementById("diffuse");
+    diffuse_check.checked = diffuse;
+    diffuse_check.onchange = function() {
+        diffuse = diffuse_check.checked;
+    };
+
+    let show_ants_box = document.getElementById("show_ants");
+    show_ants_box.checked = true;
+    show_ants_box.onchange = function() {
+        showAnts = show_ants_box.checked;
+        update();
+    };
 
 
     population.innerHTML = "POPULATION: " + colony.livingAnts;
@@ -52,6 +77,45 @@ window.onload = function() {
         }
     };
 
+    let initialen = document.getElementById("initial_energy");
+    initialen.value = startingEnergy;
+    initialen.onchange = function() {
+        if(parseInt(initialen.value) !== NaN && parseInt(initialen.value) >= 0) {
+            startingEnergy = parseInt(initialen.value);
+        } else {
+            initialen.value = startingEnergy;
+        }
+    };
+
+    let maxf = document.getElementById("max_food");
+    maxf.value = maxFood;
+    maxf.onchange = function() {
+        if(parseFloat(maxf.value) !== NaN && parseFloat(maxf.value) >= 0) {
+            maxFood = parseFloat(maxf.value);
+        } else {
+            maxf.value = maxFood;
+        }
+    };
+
+    let ref = document.getElementById("food_refill");
+    ref.value = foodRefill;
+    ref.onchange = function() {
+        if(parseFloat(ref.value) !== NaN && parseFloat(ref.value) >= 0) {
+            foodRefill = parseFloat(ref.value);
+        } else {
+            ref.value = foodRefill;
+        }
+    };
+
+    let reproduceFood = document.getElementById("food_to_reproduce");
+    reproduceFood.value = foodToReproduce;
+    reproduceFood.onchange = function() {
+        if(parseInt(reproduceFood.value) !== NaN && parseInt(reproduceFood.value) >= 0) {
+            foodToReproduce = parseInt(reproduceFood.value);
+        } else {
+            reproduceFood.value = foodToReproduce;
+        }
+    };
 
     let mc = document.getElementById("mutation_chance");
     mc.value = MUTATION_CHANCE;
