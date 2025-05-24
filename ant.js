@@ -56,7 +56,6 @@ function shuffleArray(array) {
     }
 }
 
-let food_home = 0;
 
 let NOISE_IN_MULTIPLIER = 0;
 let NOISE_OUT_MULTIPLIER = 0;
@@ -74,10 +73,10 @@ class Brain {
         this.blueConvolutionalLayer = new Clayer(3, 1);
         this.foodConvolutionalLayer = new Clayer(3, 1);
         this.spacialProcesser = new CrossNetwork([
-            {type: "normal", input_size: 60, output_size: 5},
+            {type: "normal", input_size: 60, output_size: 3},
         ]);
         this.network = new CrossNetwork([
-            {type: "normal", input_size: 5 + 2, output_size: 9},
+            {type: "normal", input_size: 3 + 2, output_size: 9},
         ]);
     }
     spacialFeedForward(spacialInput) {
@@ -192,6 +191,7 @@ class Ant {
     food_carried;
     energy;
     alive;
+    score;
 
     brain;
     constructor(hill, index) {
@@ -210,6 +210,7 @@ class Ant {
         this.food_carried = 0;
         this.energy = startingEnergy;
         this.alive = true;
+        this.score = 0;
 
         getTile(this.position.x, this.position.y).ant_number++;
 
@@ -235,15 +236,9 @@ class Ant {
 
         for (let i = 0; i < 3; i++) { // Corresponds to sample matrix row index
             for (let j = 0; j < 5; j++) { // Corresponds to sample matrix col index
-                // Define local coordinates relative to the ant's orientation:
-                // lx: local x-offset. -1 is to the ant's left, 0 is center, 1 is to the ant's right.
-                // ly: local y-offset. 0 is the row of tiles the ant is currently on, 
-                //     1 is one step in front, ..., 4 is four steps in front.
-                const lx = i - 1; 
-                const ly = j;     
+                const lx = i - 1;
+                const ly = j - 1;
 
-                // Transform local coordinates to world offset:
-                // world_offset_vector = (right_vector * lx) + (forward_vector * ly)
                 const world_offset_x = right_vector.x * lx + forward_vector.x * ly;
                 const world_offset_y = right_vector.y * lx + forward_vector.y * ly;
 
@@ -251,10 +246,10 @@ class Ant {
                 const tile_to_sample_y = this.position.y + world_offset_y;
 
                 const tile = getTile(tile_to_sample_x, tile_to_sample_y);
-                this.samples[0].data[i][j] = tile.chemicalRGB[0] / 255; // Red channel
-                this.samples[1].data[i][j] = tile.chemicalRGB[1] / 255; // Green channel
-                this.samples[2].data[i][j] = tile.chemicalRGB[2] / 255; // Blue channel
-                this.samples[3].data[i][j] = tile.food_channel / 255;   // Food channel
+                this.samples[0].data[i][j] = tile.chemicalRGB[0] / 255;
+                this.samples[1].data[i][j] = tile.chemicalRGB[1] / 255;
+                this.samples[2].data[i][j] = tile.chemicalRGB[2] / 255;
+                this.samples[3].data[i][j] = tile.food_channel / 255;
             }
         }
     }
@@ -288,7 +283,7 @@ class Ant {
 
     reachForFood(tile) {
         if(tile.food_channel > 0 && this.food_carried < 255) {
-            const FoodThatCanBePickedUp = tile.food_channel > 100 ? 100 : tile.food_channel;
+            const FoodThatCanBePickedUp = Math.min(100, tile.food_channel / tile.ant_number);
             this.food_carried += FoodThatCanBePickedUp;
             tile.removeFood(FoodThatCanBePickedUp);
         }
@@ -296,8 +291,8 @@ class Ant {
 
     home_beavieur() {
         if(this.food_carried > 0) {
-            food_home += this.food_carried;
             if(this.food_carried > foodToReproduce) {
+                this.score += this.food_carried;
                 for(let i = 0; i < Math.floor(this.food_carried / foodToReproduce); i++) {
                     this.hill.makeOffspring(this.index);
                     this.food_carried -= foodToReproduce;
@@ -393,13 +388,13 @@ class Ant {
 
     die() {
         const tile = getTile(this.position.x, this.position.y);
-        this.alive = false;
         tile.addFood(this.food_carried);
-        this.hill.livingAnts--;
         tile.ant_number--;
+        this.hill.processDeath(this.index);
     }
 }
 
+let colonyLife = 2000;
 let initialPopulation = 20;
 
 const VOIDANT = {
@@ -409,16 +404,33 @@ const VOIDANT = {
 
 class Colony {
     position;
+    age;
 
     ants;
     livingAnts;
-    constructor(x, y) {
+    bestGenes;
+    bestScore;
+    constructor(x, y, queenGenes = "random") {
         this.position = new Vector2D(x, y);
+        this.age = 0;
+
         this.ants = new Array(MAX_ANTS).fill(VOIDANT);
         this.ants[0] = new Ant(this, 0);
+        if(queenGenes !== "random") {
+            this.ants[0].brain.parseParameters(queenGenes);
+        }
         this.livingAnts = 1;
         for(let i = 0; i < initialPopulation - 1; i++) {
             this.makeOffspring(0);
+        }
+        this.bestScore = 0;
+        this.bestGenes = this.ants[0].brain.getParameters();
+    }
+
+    step() {
+        this.age++;
+        for(let i = 0; i < this.ants.length; i++) {
+            this.ants[i].step();
         }
     }
 
@@ -429,13 +441,30 @@ class Colony {
         return -1;
     }
 
+    processDeath(index) {
+        this.livingAnts--;
+        const score = this.ants[index].score;
+        if(score > this.bestScore) {
+            this.bestScore = score;
+            this.bestGenes = this.ants[index].brain.getParameters();
+        }
+        this.ants[index] = VOIDANT;
+    }
+
     makeOffspring(index) {
         this.livingAnts++;
         const newIndex = this.getFreeIndex();
-        if(newIndex === -1) { return }
+        if(newIndex === -1) {
+            console.error("population overflow");
+            return;
+        }
         let result = new Ant(this, newIndex);
         const mother = this.ants[index];
         result.brain.parseParameters(getMutatedBrainParameters(mother.brain));
         this.ants[newIndex] = result;
+    }
+
+    createChildColony() {
+        return new Colony(this.position.x, this.position.y, this.bestGenes);
     }
 }

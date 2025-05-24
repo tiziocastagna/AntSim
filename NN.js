@@ -158,9 +158,6 @@ class Clayer {
         for (let i = 0; i < this.kernal_number; i++) {
             this.kernals.push(new Matrix(size, size)); // Each kernel is a 'size x size' matrix
         }
-        // The Matrix constructor already randomizes its values.
-        // Calling this.random() here would re-randomize them, which is redundant for initialization.
-        // this.random(); 
         this.kernel_radius = Math.floor(size / 2);
     }
 
@@ -223,6 +220,7 @@ class Clayer {
         for (let k = 0; k < this.kernal_number; k++) {
             result = result.concat(outputFeatureMaps[k].flatten());
         }
+        result = result.map(item => RELU(item));
         return result;
     }
 

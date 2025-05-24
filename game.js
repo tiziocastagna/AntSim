@@ -63,9 +63,7 @@ function moveRight() {
 let ticks = 0;
 
 function tick() {
-    for(let ant of colony.ants) {
-        ant.step();
-    }
+    colony.step();
     if(ticks % 10 === 0) {
         diffuse ? updateTiles() : only_fade();
         population.innerHTML = "POPULATION: " + colony.livingAnts;
@@ -73,7 +71,7 @@ function tick() {
     update();
     ticks++;
     // Restart
-    if(colony.livingAnts === 0) { restart(); }
+    if(colony.livingAnts === 0 || colony.age > colonyLife) { restart(); }
 }
 
 let tickspeed = 100;
@@ -116,19 +114,9 @@ function speed_down() {
 }
 
 function restart() {
-    console.log("restart!!");
-    for(let ant of colony.ants) {
-        if(ant.alive) {
-            ant.die();
-        }
-    }
-    for(let i = 0; i < tiles.length; i++) {
-        for(let l = 0; l < tiles[i].length; l++) {
-            tiles[i][l].chemicalRGB = [0, 0, 0];
-            tiles[i][l].food_channel = 0;
-        }
-    }
-    colony = new Colony(0, 0);
+    console.log("new Generation!!", colony.bestScore);
+    buildTiles();
+    colony = colony.createChildColony();
 }
 
 function toggle_showFood() {
@@ -184,12 +172,30 @@ function changeWorldRight() {
 // NOT YET IMPLEMENTED
 class Simulation {
     colony;
+    world;
+
+    render;
+
+    ticks;
     constructor() {
+        this.render = false;
+        this.ticks = 0;
         this.colony = new Colony(0, 0);
+        this.world = new World();
     }
     tick() {
         for(let ant of this.colony.ants) {
             ant.step();
         }
+        if(ticks % 10 === 0) {
+            this.world.updateTiles();
+        }
+        this.ticks++;
+
+        if(this.colony.livingAnts === 0) { this.restart(); }    
+    }
+    restart() {
+        this.world.blank();
+        this.colony = this.colony.createChildColony();
     }
 }

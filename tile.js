@@ -205,3 +205,96 @@ function updateTiles() {
         }
     }
 }
+
+class World {
+    leftWidth;
+    rightWidth;
+    downHeight;
+    upHeight;
+    constructor() {
+        this.blank();
+    }
+    blank() {
+        this.tiles = [];
+        for(let i = -this.downHeight; i <= this.upHeight; i++) {
+            let row = []
+            for(let j = -this.leftWidth; j <= this.rightWidth; j++) {
+                row.push(new Tile(j, i));
+            }
+            this.tiles.push(row);
+        }
+    }
+    getTile(x, y) {
+        if(x < -this.leftWidth || x > this.rightWidth || y < -this.downHeight || y > this.upHeight) { return VOIDTILE; }
+        return this.tiles[this.downHeight + y][this.leftWidth + x];
+    }
+    updateTiles() {
+        const max_i = this.tiles.length;
+        const max_j = this.tiles[0].length;
+
+        for(let i = 0; i < max_i; i++) {
+            for(let j = 0; j < max_j; j++) {
+                const tile = this.tiles[i][j];
+                const current_tile_x = tile.x;
+                const current_tile_y = tile.y;
+                const others = [
+                    getTile(current_tile_x, current_tile_y + 1), // North
+                    getTile(current_tile_x, current_tile_y - 1), // South
+                    getTile(current_tile_x + 1, current_tile_y), // East
+                    getTile(current_tile_x - 1, current_tile_y)  // West
+                ];
+                const r = tile.chemicalRGB[0];
+                const g = tile.chemicalRGB[1];
+                const b = tile.chemicalRGB[2];
+                const f = tile.food_channel;
+                for(let k = 0; k < 4; k++) {
+                    others[k].chemicalRGB_buffer[0] += r * MULT_NEIGHBOURS;
+                    others[k].chemicalRGB_buffer[1] += g * MULT_NEIGHBOURS;
+                    others[k].chemicalRGB_buffer[2] += b * MULT_NEIGHBOURS;
+                    others[k].food_channel_buffer += f * MULT_NEIGHBOURS;
+                }
+                tile.chemicalRGB_buffer[0] += r * MULT_CENTER;
+                tile.chemicalRGB_buffer[1] += g * MULT_CENTER;
+                tile.chemicalRGB_buffer[2] += b * MULT_CENTER;
+                tile.food_channel_buffer += f * MULT_CENTER;
+            }
+        }
+
+        for(let i = 0; i < max_i; i++) {
+            for(let j = 0; j < max_j; j++) {
+                const tile = this.tiles[i][j];
+                tile.food_channel = 0;
+                tile.chemicalRGB = [0, 0, 0];
+                tile.addChemical(0, tile.chemicalRGB_buffer[0] * FADING_CONSTANT);
+                tile.addChemical(1, tile.chemicalRGB_buffer[1] * FADING_CONSTANT);
+                tile.addChemical(2, tile.chemicalRGB_buffer[2] * FADING_CONSTANT);
+                tile.addFood(tile.food_channel_buffer);
+                tile.chemicalRGB_buffer = [0, 0, 0];
+                tile.food_channel_buffer = 0;
+                foodInPlay += tile.food_channel;
+                if(tile.food_channel < maxFood) {
+                    tile.food_channel += foodRefill;
+                }
+                // TODO: find a more elegant solution
+                if(tile.ant_number < 0) {tile.ant_number = 0;}
+            }
+        }
+    }
+    only_fade() {
+        const max_i = this.tiles.length;
+        const max_j = this.tiles[0].length;
+        for(let i = 0; i < max_i; i++) {
+            for(let j = 0; j < max_j; j++) {
+                const tile = this.tiles[i][j];
+                tile.chemicalRGB[0] *= FADING_CONSTANT;
+                tile.chemicalRGB[1] *= FADING_CONSTANT;
+                tile.chemicalRGB[2] *= FADING_CONSTANT;
+                if(tile.food_channel < maxFood) {
+                    tile.food_channel += foodRefill;
+                }
+                // TODO: find a more elegant solution
+                if(tile.ant_number < 0) {tile.ant_number = 0;}
+            }
+        }
+    }
+}
