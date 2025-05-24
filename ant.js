@@ -74,10 +74,10 @@ class Brain {
         this.blueConvolutionalLayer = new Clayer(3, 1);
         this.foodConvolutionalLayer = new Clayer(3, 1);
         this.spacialProcesser = new CrossNetwork([
-            {type: "normal", input_size: 15 + 15 + 15 + 15, output_size: 5},
+            {type: "normal", input_size: 60, output_size: 5},
         ]);
         this.network = new CrossNetwork([
-            {type: "normal", input_size: 5 + 3, output_size: 9},
+            {type: "normal", input_size: 5 + 2, output_size: 9},
         ]);
     }
     spacialFeedForward(spacialInput) {
@@ -100,6 +100,7 @@ class Brain {
         parameters = parameters.concat(this.blueConvolutionalLayer.getParameters());
         parameters = parameters.concat(this.foodConvolutionalLayer.getParameters());
         parameters = parameters.concat(this.spacialProcesser.getParameters());
+        parameters = parameters.concat(this.network.getParameters());
         return parameters;
     }
     parseParameters(parameters) {
@@ -201,7 +202,10 @@ class Ant {
         this.home = new Vector2D(this.home.x, this.home.y);
         this.direction = getRandomDirection();
 
-        this.samples = new Array(4).fill(new Matrix(3, 5));
+        this.samples = [];
+        for (let i = 0; i < 4; i++) {
+            this.samples.push(new Matrix(3, 5)); // Assuming Matrix(rows, cols)
+        }
 
         this.food_carried = 0;
         this.energy = startingEnergy;
@@ -225,17 +229,35 @@ class Ant {
     }
     
     sample() {
-        for(let i = 0; i < 3; i++) {
-            for(let j = 0; j < 5; j++) {
-                const tile = getTile(this.position.x + i - 1, this.position.y + j - 1);
-                this.samples[0].data[i][j] = tile.chemicalRGB[0];
-                this.samples[1].data[i][j] = tile.chemicalRGB[1];
-                this.samples[2].data[i][j] = tile.chemicalRGB[2];
-                this.samples[3].data[i][j] = tile.food_channel;
+        const forward_vector = this.direction;
+        // ROTATION_270 effectively rotates by -90 degrees for a right-hand vector
+        const right_vector = ROTATION_270.transform(this.direction); 
+
+        for (let i = 0; i < 3; i++) { // Corresponds to sample matrix row index
+            for (let j = 0; j < 5; j++) { // Corresponds to sample matrix col index
+                // Define local coordinates relative to the ant's orientation:
+                // lx: local x-offset. -1 is to the ant's left, 0 is center, 1 is to the ant's right.
+                // ly: local y-offset. 0 is the row of tiles the ant is currently on, 
+                //     1 is one step in front, ..., 4 is four steps in front.
+                const lx = i - 1; 
+                const ly = j;     
+
+                // Transform local coordinates to world offset:
+                // world_offset_vector = (right_vector * lx) + (forward_vector * ly)
+                const world_offset_x = right_vector.x * lx + forward_vector.x * ly;
+                const world_offset_y = right_vector.y * lx + forward_vector.y * ly;
+
+                const tile_to_sample_x = this.position.x + world_offset_x;
+                const tile_to_sample_y = this.position.y + world_offset_y;
+
+                const tile = getTile(tile_to_sample_x, tile_to_sample_y);
+                this.samples[0].data[i][j] = tile.chemicalRGB[0] / 255; // Red channel
+                this.samples[1].data[i][j] = tile.chemicalRGB[1] / 255; // Green channel
+                this.samples[2].data[i][j] = tile.chemicalRGB[2] / 255; // Blue channel
+                this.samples[3].data[i][j] = tile.food_channel / 255;   // Food channel
             }
         }
     }
-
     move(direction) {
         if(this.alive === false) { return; }
         let next_direction;

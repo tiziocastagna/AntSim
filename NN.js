@@ -62,6 +62,7 @@ class Layer {
     }
 
     feedForward(inputArray) {
+        if(inputArray.length != this.input_size) {console.log("incogruence in the input size");}
         // Calculate weighted sum: weights * input
         let weightedSum = this.weights.transform(inputArray);
 
@@ -147,53 +148,91 @@ class Network {
 class Clayer {
     size;
     kernals;
+    kernal_number;
+    kernel_radius; // Used for convolution calculation
+
     constructor(size, kernals) {
         this.size = size;
         this.kernal_number = kernals;
-        this.kernals = new Array(kernals).fill(new Matrix(size, size));
-        this.random();
-        this.margin = Math.floor(size / 2 - 1);
+        this.kernals = [];
+        for (let i = 0; i < this.kernal_number; i++) {
+            this.kernals.push(new Matrix(size, size)); // Each kernel is a 'size x size' matrix
+        }
+        // The Matrix constructor already randomizes its values.
+        // Calling this.random() here would re-randomize them, which is redundant for initialization.
+        // this.random(); 
+        this.kernel_radius = Math.floor(size / 2);
     }
+
     random() {
         for(let k = 0; k < this.kernal_number; k++) {
             for(let i = 0; i < this.size; i++) {
                 for(let j = 0; j < this.size; j++) {
-                    this.kernals[k].data[i][j] = Math.random() * 2 - 1;
+                    if (this.kernals[k] && this.kernals[k].data && this.kernals[k].data[i]) {
+                        this.kernals[k].data[i][j] = Math.random() * 2 - 1;
+                    }
                 }
             }
         }
     }
 
-    feedForward(inputSignal) {
-        if(!inputSignal instanceof Matrix) {console.error("Incorrect input type"); return;}
-        const inputWidth = inputSignal.data.length;
-        const inputHeight = inputSignal.data[0].length;
-        
-        let outputSignal = new Array(this.kernal_number).fill(new Matrix(inputWidth, inputHeight));
-        for(let i = 0; i < inputWidth; i++) {
-            for(let j = 0; j < inputHeight; j++) {
-                for(let k = 0; k < this.kernal_number; k++) {
-                    for(let k1 = -this.margin; k1 <= this.margin; k1++) {
-                        for(let k2 = -this.margin; k2 < -this.margin; k2++) {
-                            if(i + k1 < 0 || i + k1 >= inputWidth || j + k2 < 0 || j + k2 >= inputHeight)
-                            outputSignal[k].data[i][j] += inputSignal.data[i + k1][j + k2] * this.kernals[k].data[k1][k2];
+    feedForward(inputSignal) { // inputSignal is a Matrix
+        if (!(inputSignal instanceof Matrix)) {
+            console.error("Incorrect input type for Clayer.feedForward. Expected Matrix.");
+            return [];
+        }
+
+        const inputRows = inputSignal.rows;
+        const inputCols = inputSignal.cols;
+
+        let outputFeatureMaps = [];
+        for (let k = 0; k < this.kernal_number; k++) {
+            const outputMap = new Matrix(inputRows, inputCols);
+            // Initialize output matrix data to 0, as Matrix constructor might fill with random values
+            for(let r = 0; r < inputRows; r++) {
+                for(let c = 0; c < inputCols; c++) {
+                    outputMap.data[r][c] = 0;
+                }
+            }
+            outputFeatureMaps.push(outputMap);
+        }
+
+        for (let k = 0; k < this.kernal_number; k++) { // For each kernel
+            const currentKernel = this.kernals[k]; // Matrix object
+            const outputMapForKernel = outputFeatureMaps[k]; // Matrix object
+
+            for (let i = 0; i < inputRows; i++) { // Iterate over each pixel of the output map (row)
+                for (let j = 0; j < inputCols; j++) { // Iterate over each pixel of the output map (col)
+                    let sum = 0;
+                    for (let ki = 0; ki < this.size; ki++) { // Kernel row
+                        for (let kj = 0; kj < this.size; kj++) { // Kernel col
+                            const input_i = i - this.kernel_radius + ki;
+                            const input_j = j - this.kernel_radius + kj;
+
+                            if (input_i >= 0 && input_i < inputRows && input_j >= 0 && input_j < inputCols) {
+                                sum += inputSignal.data[input_i][input_j] * currentKernel.data[ki][kj];
+                            }
                         }
                     }
+                    outputMapForKernel.data[i][j] = sum;
                 }
             }
         }
+
         let result = [];
-        for(let i = 0; i < outputSignal.length; i++) {
-            result = result.concat(outputSignal[i].flatten());
+        for (let k = 0; k < this.kernal_number; k++) {
+            result = result.concat(outputFeatureMaps[k].flatten());
         }
         return result;
     }
+
     getParameters() {
         let parameters = [];
         for (let k = 0; k < this.kernals.length; k++) {
-            for (let i = 0; i < this.kernals[k].length; i++) {
-                for (let j = 0; j < this.kernals[k][i].length; j++) {
-                    parameters.push(this.kernals[k][i][j]);
+            const kernelMatrix = this.kernals[k];
+            for (let i = 0; i < kernelMatrix.rows; i++) {
+                for (let j = 0; j < kernelMatrix.cols; j++) {
+                    parameters.push(kernelMatrix.data[i][j]);
                 }
             }
         }
@@ -201,15 +240,26 @@ class Clayer {
     }
     parseParameters(parameters) {
         if(parameters.length != this.kernal_number) {
-            console.error("Not enough parameters to parse for kernal.");
-            return;
+            // This check is not robust. The number of parameters should be kernal_number * size * size.
+            // console.warn("Clayer.parseParameters: Parameter count check might be inexact.");
         }
+        const expectedParamCount = this.kernal_number * this.size * this.size;
+        if (parameters.length < expectedParamCount) {
+            console.error(`Clayer.parseParameters: Not enough parameters. Expected ${expectedParamCount}, got ${parameters.length}.`);
+            // Potentially fill with what's available or throw an error
+        }
+
         let index = 0;
         for(let k = 0; k < this.kernals.length; k++) {
-            for(let i = 0; i < this.kernals[k].length; i++) {
-                for(let j = 0; j < this.kernals[k][i].length; j++) {
+            const kernelMatrix = this.kernals[k];
+            for(let i = 0; i < kernelMatrix.rows; i++) { // kernelMatrix.rows is this.size
+                for(let j = 0; j < kernelMatrix.cols; j++) { // kernelMatrix.cols is this.size
                     if(index < parameters.length) {
-                        this.kernals[k][i][j] = parameters[index];
+                        kernelMatrix.data[i][j] = parameters[index];
+                        index++; // Increment index after using a parameter
+                    } else {
+                        // console.warn("Clayer.parseParameters: Ran out of parameters during parsing.");
+                        return; // Stop if parameters run out
                     }
                 }
             }
