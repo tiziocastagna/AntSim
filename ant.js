@@ -68,15 +68,16 @@ let metabolism = 1;
 // TODO: implemet a more elegant solution with tensors
 class Brain {
     constructor() {
-        this.redConvolutionalLayer = new Clayer(3, 1);
-        this.greenConvolutionalLayer = new Clayer(3, 1);
-        this.blueConvolutionalLayer = new Clayer(3, 1);
-        this.foodConvolutionalLayer = new Clayer(3, 1);
+        this.redConvolutionalLayer = new Clayer(3, 2);
+        this.greenConvolutionalLayer = new Clayer(3, 2);
+        this.blueConvolutionalLayer = new Clayer(3, 2);
+        this.foodConvolutionalLayer = new Clayer(3, 2);
         this.spacialProcesser = new CrossNetwork([
-            {type: "normal", input_size: 60, output_size: 3},
+            {type: "normal", input_size: 120, output_size: 32},
         ]);
         this.network = new CrossNetwork([
-            {type: "normal", input_size: 3 + 2, output_size: 9},
+            {type: "normal", input_size: 32 + 3, output_size: 16},
+            {type: "normal", input_size: 16, output_size: 18}
         ]);
     }
     spacialFeedForward(spacialInput) {
@@ -325,7 +326,8 @@ class Ant {
 
         const INPUTS = [
             this.position.x === this.hill.position.x && this.position.y === this.hill.position.y ? 1 : 0,
-            this.food_carried / 255
+            this.food_carried / 255,
+            this.energy / startingEnergy
         ];
 
         // Add noise to the input vector
@@ -353,24 +355,60 @@ class Ant {
         } else if(maxIndex === 2) {
             this.move("right");
         } else if(maxIndex === 3) {
-            let activation_strength = OUTPUT[maxIndex]; // Strength of the "lay chemical 0" output
-            let chemical_quantity = Math.max(0, activation_strength) * 255; // Scale to 0-255 range
+            let activation_strength = OUTPUT[maxIndex];
+            let chemical_quantity = Math.max(0, activation_strength) * 255;
             tile.addChemical(0, chemical_quantity);
         } else if(maxIndex === 4) {
-            let activation_strength = OUTPUT[maxIndex]; // Strength of the "lay chemical 1" output
-            let chemical_quantity = Math.max(0, activation_strength) * 255; // Scale to 0-255 range
+            let activation_strength = OUTPUT[maxIndex];
+            let chemical_quantity = Math.max(0, activation_strength) * 255;
             tile.addChemical(1, chemical_quantity);
         } else if(maxIndex === 5) {
-            let activation_strength = OUTPUT[maxIndex]; // Strength of the "lay chemical 2" output
-            let chemical_quantity = Math.max(0, activation_strength) * 255; // Scale to 0-255 range
+            let activation_strength = OUTPUT[maxIndex];
+            let chemical_quantity = Math.max(0, activation_strength) * 255;
             tile.addChemical(2, chemical_quantity);
         } else if(maxIndex === 6) {
-            this.turn_back();
+            let activation_strength = OUTPUT[maxIndex];
+            let chemical_quantity = Math.max(0, activation_strength) * 255;
+            leftTile.addChemical(0, chemical_quantity);
         } else if(maxIndex === 7) {
-            this.turn_left();
+            let activation_strength = OUTPUT[maxIndex];
+            let chemical_quantity = Math.max(0, activation_strength) * 255;
+            leftTile.addChemical(1, chemical_quantity);
         } else if(maxIndex === 8) {
-            this.turn_right();
+            let activation_strength = OUTPUT[maxIndex];
+            let chemical_quantity = Math.max(0, activation_strength) * 255;
+            leftTile.addChemical(2, chemical_quantity);
         } else if(maxIndex === 9) {
+            let activation_strength = OUTPUT[maxIndex];
+            let chemical_quantity = Math.max(0, activation_strength) * 255;
+            rightTile.addChemical(0, chemical_quantity);
+        } else if(maxIndex === 10) {
+            let activation_strength = OUTPUT[maxIndex];
+            let chemical_quantity = Math.max(0, activation_strength) * 255;
+            rightTile.addChemical(1, chemical_quantity);
+        } else if(maxIndex === 11) {
+            let activation_strength = OUTPUT[maxIndex];
+            let chemical_quantity = Math.max(0, activation_strength) * 255;
+            rightTile.addChemical(2, chemical_quantity);
+        } else if(maxIndex === 12) {
+            let activation_strength = OUTPUT[maxIndex];
+            let chemical_quantity = Math.max(0, activation_strength) * 255;
+            frontTile.addChemical(0, chemical_quantity);
+        } else if(maxIndex === 13) {
+            let activation_strength = OUTPUT[maxIndex];
+            let chemical_quantity = Math.max(0, activation_strength) * 255;
+            frontTile.addChemical(1, chemical_quantity);
+        } else if(maxIndex === 14) {
+            let activation_strength = OUTPUT[maxIndex];
+            let chemical_quantity = Math.max(0, activation_strength) * 255;
+            frontTile.addChemical(2, chemical_quantity);
+        } else if(maxIndex === 15) {
+            this.turn_back();
+        } else if(maxIndex === 16) {
+            this.turn_left();
+        } else if(maxIndex === 17) {
+            this.turn_right();
+        } else if(maxIndex === 18) {
             // DO NOTHING
         }
         this.removeEnergy(metabolism);
@@ -395,6 +433,7 @@ class Ant {
 }
 
 let colonyLife = 2000;
+let generations = 1;
 let initialPopulation = 20;
 
 const VOIDANT = {
@@ -446,7 +485,7 @@ class Colony {
         const score = this.ants[index].score;
         if(score > this.bestScore) {
             this.bestScore = score;
-            this.bestGenes = this.ants[index].brain.getParameters();
+            this.bestGenes = getMutatedBrainParameters(this.ants[index].brain);
         }
         this.ants[index] = VOIDANT;
     }

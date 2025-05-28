@@ -6,21 +6,14 @@ let DOWN_HEIGHT = 50;
 let colony;
 let MAX_ANTS = 1000;
 
-function setUpWorld(gridContainer) {
+function setUpCamera(gridContainer) {
     for(let i = -CAMERA_RADIUS; i <= CAMERA_RADIUS; i++) {
         for(let l = -CAMERA_RADIUS; l <= CAMERA_RADIUS; l++) {
-                const visualSquare = document.createElement('div');
-                visualSquares.push(visualSquare);
-                gridContainer.appendChild(visualSquare);
+            const visualSquare = document.createElement('div');
+            visualSquares.push(visualSquare);
+            gridContainer.appendChild(visualSquare);
         }
     }
-
-    buildTiles();
-
-    colony = new Colony(0, 0);
-
-    readyToRender = true;
-    update();
 }
 
 function buildTiles() {
@@ -115,6 +108,8 @@ function speed_down() {
 
 function restart() {
     console.log("new Generation!!", colony.bestScore);
+    generations++;
+    generations_element.innerHTML = "GENERATIONS: " + generations;
     buildTiles();
     colony = colony.createChildColony();
 }
@@ -174,11 +169,8 @@ class Simulation {
     colony;
     world;
 
-    render;
-
     ticks;
     constructor() {
-        this.render = false;
         this.ticks = 0;
         this.colony = new Colony(0, 0);
         this.world = new World();
@@ -197,5 +189,43 @@ class Simulation {
     restart() {
         this.world.blank();
         this.colony = this.colony.createChildColony();
+    }
+}
+
+class RenderedSimulation extends Simulation {
+    constructor() {
+        super();
+    }
+    render() {
+        for (let i = -CAMERA_RADIUS; i <= CAMERA_RADIUS; i++) {
+            for (let j = -CAMERA_RADIUS; j <= CAMERA_RADIUS; j++) {
+                const visualSquare = visualSquares[(CAMERA_RADIUS + i) * (CAMERA_RADIUS * 2 + 1) + j + CAMERA_RADIUS];
+
+                visualSquare.style.backgroundColor = 'white';
+                visualSquare.style.backgroundImage = 'none';
+
+                if(i === 0 && j === 0) {
+                    visualSquare.style.backgroundColor = 'red';
+                    continue;
+                }
+
+                const world_render_x = cameraX + j;
+                const world_render_y = cameraY - i;     // Show Up up and Down down
+                const square = this.getTile(world_render_x, world_render_y);
+                if(square) {
+                    let color;
+                    if(render_mode == "normal") {
+                        color = square.render();
+                    }
+                    if(render_mode == "chemical") {
+                        color = square.render_chemical();
+                    }
+                    if(render_mode == "food") {
+                        color = square.render_food();
+                    }
+                    visualSquare.style.backgroundColor = color;
+                }
+            }
+        }
     }
 }

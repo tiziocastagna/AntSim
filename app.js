@@ -1,6 +1,14 @@
 document.addEventListener('DOMContentLoaded', function() {
     const gridContainer = document.getElementById('game_grid');
-    setUpWorld(gridContainer);
+    setUpCamera(gridContainer);
+    
+
+    buildTiles();
+
+    colony = new Colony(0, 0);
+
+    readyToRender = true;
+    update();
 });
 
 document.addEventListener('keydown', function(event) {
@@ -21,6 +29,7 @@ let showSettings;
 let play_button;
 
 let population;
+let generations_element;
 
 let showAnts = true;
 
@@ -29,6 +38,9 @@ window.onload = function() {
     showSettings = document.getElementById("settings");
     population = document.getElementById("population");
     play_button = document.getElementById("play_stop_button");
+    generations_element = document.getElementById("generation");
+    
+    generations_element.innerHTML = "GENERATION: " + generations;
 
     let fade = document.getElementById("fading_speed");
     fade.value = FADING_CONSTANT;
@@ -153,6 +165,16 @@ window.onload = function() {
             NOISE_IN_MULTIPLIER = parseFloat(NOISE_OUT.value);
         } else {
             NOISE_OUT.value = NOISE_IN_MULTIPLIER;
+        }
+    };
+    
+    const colony_life_element = document.getElementById("colony_life");
+    colony_life_element.value = colonyLife;
+    colony_life_element.onchange = function() {
+        if(parseInt(colony_life_element.value) !== NaN && parseInt(colony_life_element.value) >= 0) {
+            colonyLife = parseInt(colony_life_element.value);
+        } else {
+            colony_life_element.value = colonyLife;
         }
     };
 }
