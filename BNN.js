@@ -146,7 +146,7 @@ class CrossNetwork {
     }
 }
 
-let MUTATION_CHANCE = 0.1;
+let MUTATION_CHANCE = 0.01;
 let MUTATION_STRENGTH = 0.1;
 
 function getMutatedParameters(N) {

@@ -9,8 +9,10 @@ let render_mode = "normal";
 
 const CAMERA_RADIUS = 10;       // Due to grid size. Pay attention if changing
 
+let observedIndex = 0;
 
-function render() {
+function render(world) {
+    population.update(sims[observedIndex].colony.livingAnts);
     for (let i = -CAMERA_RADIUS; i <= CAMERA_RADIUS; i++) {
         for (let j = -CAMERA_RADIUS; j <= CAMERA_RADIUS; j++) {
             const visualSquare = visualSquares[(CAMERA_RADIUS + i) * (CAMERA_RADIUS * 2 + 1) + j + CAMERA_RADIUS];
@@ -25,7 +27,7 @@ function render() {
 
             const world_render_x = cameraX + j;
             const world_render_y = cameraY - i;     // Show Up up and Down down
-            const square = getTile(world_render_x, world_render_y);
+            const square = world.getTile(world_render_x, world_render_y);
             if(square) {
                 let color;
                 if(render_mode == "normal") {

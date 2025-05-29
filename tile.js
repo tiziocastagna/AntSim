@@ -15,8 +15,6 @@ function scaleColor(color, factor) {
     return [color[0] * factor, color[1] * factor, color[2] * factor]
 }
 
-let maxFood = 30;
-let foodRefill = 1;
 
 class Tile {
     x;
@@ -37,7 +35,7 @@ class Tile {
         this.color = [34 + Math.random() * 10, 139 + Math.random() * 10, 39 + Math.random() * 10];
         this.food_color = [255, 239, 10];
         this.chemicalRGB = [0, 0, 0];
-        this.food_channel = 0;
+        this.food_channel = 30;
         this.food_channel_buffer = 0;
         this.chemicalRGB_buffer = [0, 0, 0];
         this.ant_number = 0;
@@ -100,105 +98,17 @@ function getTile(x, y) {
     return tiles[DOWN_HEIGHT + y][LEFT_WIDTH + x];
 }
 
-function createFoodPile(x, y, radius) {
-    for(let dy = -radius; dy <= radius; dy++) {
-        for(let dx = -radius; dx <= radius; dx++) {
-            const current_x = x + dx;
-            const current_y = y + dy;
-
-            const distance_squared = dx**2 + dy**2;
-            if(distance_squared <= radius**2) {
-                const tile = getTile(current_x, current_y);
-                if (tile !== VOIDTILE) {
-                    tile.addFood(255);
-                }
-            }
-        }
-    }
-}
-
-function getRandomX_Y() {
-    // Generate x in [-LEFT_WIDTH, RIGHT_WIDTH] inclusive
-    const x = Math.floor(Math.random() * (RIGHT_WIDTH + LEFT_WIDTH + 1)) - LEFT_WIDTH;
-    // Generate y in [-DOWN_HEIGHT, UP_HEIGHT] inclusive
-    const y = Math.floor(Math.random() * (UP_HEIGHT + DOWN_HEIGHT + 1)) - DOWN_HEIGHT;
-    return [x, y];
-}
-
-let diffuse = false;
-const WEIGHT_NEIGHBOURS = 1;
-const WEIGHT_CENTER = 80;
-const WEIGHT_SUM = WEIGHT_NEIGHBOURS * 4 + WEIGHT_CENTER
-const MULT_NEIGHBOURS = WEIGHT_NEIGHBOURS / WEIGHT_SUM;
-const MULT_CENTER = WEIGHT_CENTER / WEIGHT_SUM;
-
-let FADING_CONSTANT = 0.95;
-
-function only_fade() {
+function fade() {
     const max_i = tiles.length;
     const max_j = tiles[0].length;
     for(let i = 0; i < max_i; i++) {
         for(let j = 0; j < max_j; j++) {
             const tile = tiles[i][j];
-            tile.chemicalRGB[0] *= FADING_CONSTANT;
-            tile.chemicalRGB[1] *= FADING_CONSTANT;
-            tile.chemicalRGB[2] *= FADING_CONSTANT;
-            if(tile.food_channel < maxFood) {
-                tile.food_channel += foodRefill;
-            }
-            // TODO: find a more elegant solution
-            if(tile.ant_number < 0) {tile.ant_number = 0;}
-        }
-    }
-}
-
-function updateTiles() {
-    let foodInPlay = 0;
-    const max_i = tiles.length;
-    const max_j = tiles[0].length;
-
-    for(let i = 0; i < max_i; i++) {
-        for(let j = 0; j < max_j; j++) {
-            const tile = tiles[i][j];
-            const current_tile_x = tile.x;
-            const current_tile_y = tile.y;
-            const others = [
-                getTile(current_tile_x, current_tile_y + 1), // North
-                getTile(current_tile_x, current_tile_y - 1), // South
-                getTile(current_tile_x + 1, current_tile_y), // East
-                getTile(current_tile_x - 1, current_tile_y)  // West
-            ];
-            const r = tile.chemicalRGB[0];
-            const g = tile.chemicalRGB[1];
-            const b = tile.chemicalRGB[2];
-            const f = tile.food_channel;
-            for(let k = 0; k < 4; k++) {
-                others[k].chemicalRGB_buffer[0] += r * MULT_NEIGHBOURS;
-                others[k].chemicalRGB_buffer[1] += g * MULT_NEIGHBOURS;
-                others[k].chemicalRGB_buffer[2] += b * MULT_NEIGHBOURS;
-                others[k].food_channel_buffer += f * MULT_NEIGHBOURS;
-            }
-            tile.chemicalRGB_buffer[0] += r * MULT_CENTER;
-            tile.chemicalRGB_buffer[1] += g * MULT_CENTER;
-            tile.chemicalRGB_buffer[2] += b * MULT_CENTER;
-            tile.food_channel_buffer += f * MULT_CENTER;
-        }
-    }
-
-    for(let i = 0; i < max_i; i++) {
-        for(let j = 0; j < max_j; j++) {
-            const tile = tiles[i][j];
-            tile.food_channel = 0;
-            tile.chemicalRGB = [0, 0, 0];
-            tile.addChemical(0, tile.chemicalRGB_buffer[0] * FADING_CONSTANT);
-            tile.addChemical(1, tile.chemicalRGB_buffer[1] * FADING_CONSTANT);
-            tile.addChemical(2, tile.chemicalRGB_buffer[2] * FADING_CONSTANT);
-            tile.addFood(tile.food_channel_buffer);
-            tile.chemicalRGB_buffer = [0, 0, 0];
-            tile.food_channel_buffer = 0;
-            foodInPlay += tile.food_channel;
-            if(tile.food_channel < maxFood) {
-                tile.food_channel += foodRefill;
+            tile.chemicalRGB[0] *= fadingCoefficent.value;
+            tile.chemicalRGB[1] *= fadingCoefficent.value;
+            tile.chemicalRGB[2] *= fadingCoefficent.value;
+            if(tile.food_channel < maxFood.value) {
+                tile.food_channel += foodRefill.value;
             }
             // TODO: find a more elegant solution
             if(tile.ant_number < 0) {tile.ant_number = 0;}
@@ -212,6 +122,10 @@ class World {
     downHeight;
     upHeight;
     constructor() {
+        this.leftWidth = LEFT_WIDTH;
+        this.rightWidth = RIGHT_WIDTH;
+        this.downHeight = DOWN_HEIGHT;
+        this.upHeight = UP_HEIGHT;
         this.blank();
     }
     blank() {
@@ -228,69 +142,18 @@ class World {
         if(x < -this.leftWidth || x > this.rightWidth || y < -this.downHeight || y > this.upHeight) { return VOIDTILE; }
         return this.tiles[this.downHeight + y][this.leftWidth + x];
     }
-    updateTiles() {
-        const max_i = this.tiles.length;
-        const max_j = this.tiles[0].length;
 
-        for(let i = 0; i < max_i; i++) {
-            for(let j = 0; j < max_j; j++) {
-                const tile = this.tiles[i][j];
-                const current_tile_x = tile.x;
-                const current_tile_y = tile.y;
-                const others = [
-                    getTile(current_tile_x, current_tile_y + 1), // North
-                    getTile(current_tile_x, current_tile_y - 1), // South
-                    getTile(current_tile_x + 1, current_tile_y), // East
-                    getTile(current_tile_x - 1, current_tile_y)  // West
-                ];
-                const r = tile.chemicalRGB[0];
-                const g = tile.chemicalRGB[1];
-                const b = tile.chemicalRGB[2];
-                const f = tile.food_channel;
-                for(let k = 0; k < 4; k++) {
-                    others[k].chemicalRGB_buffer[0] += r * MULT_NEIGHBOURS;
-                    others[k].chemicalRGB_buffer[1] += g * MULT_NEIGHBOURS;
-                    others[k].chemicalRGB_buffer[2] += b * MULT_NEIGHBOURS;
-                    others[k].food_channel_buffer += f * MULT_NEIGHBOURS;
-                }
-                tile.chemicalRGB_buffer[0] += r * MULT_CENTER;
-                tile.chemicalRGB_buffer[1] += g * MULT_CENTER;
-                tile.chemicalRGB_buffer[2] += b * MULT_CENTER;
-                tile.food_channel_buffer += f * MULT_CENTER;
-            }
-        }
-
-        for(let i = 0; i < max_i; i++) {
-            for(let j = 0; j < max_j; j++) {
-                const tile = this.tiles[i][j];
-                tile.food_channel = 0;
-                tile.chemicalRGB = [0, 0, 0];
-                tile.addChemical(0, tile.chemicalRGB_buffer[0] * FADING_CONSTANT);
-                tile.addChemical(1, tile.chemicalRGB_buffer[1] * FADING_CONSTANT);
-                tile.addChemical(2, tile.chemicalRGB_buffer[2] * FADING_CONSTANT);
-                tile.addFood(tile.food_channel_buffer);
-                tile.chemicalRGB_buffer = [0, 0, 0];
-                tile.food_channel_buffer = 0;
-                foodInPlay += tile.food_channel;
-                if(tile.food_channel < maxFood) {
-                    tile.food_channel += foodRefill;
-                }
-                // TODO: find a more elegant solution
-                if(tile.ant_number < 0) {tile.ant_number = 0;}
-            }
-        }
-    }
-    only_fade() {
+    fade() {
         const max_i = this.tiles.length;
         const max_j = this.tiles[0].length;
         for(let i = 0; i < max_i; i++) {
             for(let j = 0; j < max_j; j++) {
                 const tile = this.tiles[i][j];
-                tile.chemicalRGB[0] *= FADING_CONSTANT;
-                tile.chemicalRGB[1] *= FADING_CONSTANT;
-                tile.chemicalRGB[2] *= FADING_CONSTANT;
-                if(tile.food_channel < maxFood) {
-                    tile.food_channel += foodRefill;
+                tile.chemicalRGB[0] *= fadingCoefficent.value;
+                tile.chemicalRGB[1] *= fadingCoefficent.value;
+                tile.chemicalRGB[2] *= fadingCoefficent.value;
+                if(tile.food_channel < maxFood.value) {
+                    tile.food_channel += foodRefill.value;
                 }
                 // TODO: find a more elegant solution
                 if(tile.ant_number < 0) {tile.ant_number = 0;}

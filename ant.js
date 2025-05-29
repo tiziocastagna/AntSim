@@ -57,27 +57,21 @@ function shuffleArray(array) {
 }
 
 
-let NOISE_IN_MULTIPLIER = 0;
-let NOISE_OUT_MULTIPLIER = 0;
 
-let foodToReproduce = 10;
-
-let startingEnergy = 500;
 let metabolism = 1;
 
 // TODO: implemet a more elegant solution with tensors
 class Brain {
     constructor() {
-        this.redConvolutionalLayer = new Clayer(3, 2);
-        this.greenConvolutionalLayer = new Clayer(3, 2);
-        this.blueConvolutionalLayer = new Clayer(3, 2);
-        this.foodConvolutionalLayer = new Clayer(3, 2);
+        this.redConvolutionalLayer = new Clayer(3, 1);
+        this.greenConvolutionalLayer = new Clayer(3, 1);
+        this.blueConvolutionalLayer = new Clayer(3, 1);
+        this.foodConvolutionalLayer = new Clayer(3, 1);
         this.spacialProcesser = new CrossNetwork([
-            {type: "normal", input_size: 120, output_size: 32},
+            {type: "normal", input_size: 60, output_size: 16},
         ]);
         this.network = new CrossNetwork([
-            {type: "normal", input_size: 32 + 3, output_size: 16},
-            {type: "normal", input_size: 16, output_size: 18}
+            {type: "normal", input_size: 16 + 3, output_size: 18}
         ]);
     }
     spacialFeedForward(spacialInput) {
@@ -173,8 +167,8 @@ class Brain {
 function getMutatedBrainParameters(brain) {
     const parameters = brain.getParameters();
     for(let i = 0; i < parameters.length; i++) {
-        if(Math.random() < MUTATION_CHANCE) {
-            parameters[i] += (Math.random() * 2 - 1) * MUTATION_STRENGTH;
+        if(Math.random() < mutationChance.value) {
+            parameters[i] += (Math.random() * 2 - 1) * mutationStrength.value;
         }
     }
     return parameters;
@@ -182,8 +176,8 @@ function getMutatedBrainParameters(brain) {
 
 class Ant {
     position;
-    home;
-    hill;
+    colony;
+    world;
     index;
     direction;
 
@@ -192,15 +186,11 @@ class Ant {
     food_carried;
     energy;
     alive;
-    score;
-
-    brain;
-    constructor(hill, index) {
+    constructor(colony, index, world) {
         this.index = index;
-        this.hill = hill;
-        this.home = hill.position;
-        this.position = new Vector2D(this.home.x, this.home.y);
-        this.home = new Vector2D(this.home.x, this.home.y);
+        this.colony = colony;
+        this.world = world;
+        this.position = new Vector2D(colony.position.x, this.colony.position.y);
         this.direction = getRandomDirection();
 
         this.samples = [];
@@ -209,25 +199,24 @@ class Ant {
         }
 
         this.food_carried = 0;
-        this.energy = startingEnergy;
+        this.energy = initialEnergy.value;
         this.alive = true;
-        this.score = 0;
 
-        getTile(this.position.x, this.position.y).ant_number++;
+        world.getTile(this.position.x, this.position.y).ant_number++;
 
-        this.brain = new Brain();
+        this.brain = colony.brain;
     }
     getLeftTile() {
         const position = vector2Daddtion(this.position, ROTATION_270.transform(this.direction));
-        return getTile(position.x, position.y);
+        return this.world.getTile(position.x, position.y);
     }
     getRightTile() {
         const position = vector2Daddtion(this.position, ROTATION_90.transform(this.direction));
-        return getTile(position.x, position.y);
+        return this.world.getTile(position.x, position.y);
     }
     getFrontTile() {
         const position = vector2Daddtion(this.position, this.direction);
-        return getTile(position.x, position.y);
+        return this.world.getTile(position.x, position.y);
     }
     
     sample() {
@@ -246,7 +235,7 @@ class Ant {
                 const tile_to_sample_x = this.position.x + world_offset_x;
                 const tile_to_sample_y = this.position.y + world_offset_y;
 
-                const tile = getTile(tile_to_sample_x, tile_to_sample_y);
+                const tile = this.world.getTile(tile_to_sample_x, tile_to_sample_y);
                 this.samples[0].data[i][j] = tile.chemicalRGB[0] / 255;
                 this.samples[1].data[i][j] = tile.chemicalRGB[1] / 255;
                 this.samples[2].data[i][j] = tile.chemicalRGB[2] / 255;
@@ -264,19 +253,20 @@ class Ant {
         } else if(direction === "forwards") {
             next_direction = this.direction;
         } else {    // TODO: do somthing
+            console.error("invalid direction");
             return;
         }
 
         const next_position = vector2Daddtion(this.position, next_direction);
-        const next_tile = getTile(next_position.x, next_position.y);
+        const next_tile = this.world.getTile(next_position.x, next_position.y);
 
         if(next_tile !== VOIDTILE) {
             const posX = this.position.x;
             const posY = this.position.y;
-            getTile(posX, posY).ant_number--;
+            this.world.getTile(posX, posY).ant_number--;
             this.position = next_position;
             this.direction = next_direction;
-            getTile(this.position.x, this.position.y).ant_number++;
+            this.world.getTile(this.position.x, this.position.y).ant_number++;
         } else {
             // DO NOTHING
         }
@@ -292,11 +282,11 @@ class Ant {
 
     home_beavieur() {
         if(this.food_carried > 0) {
-            if(this.food_carried > foodToReproduce) {
-                this.score += this.food_carried;
-                for(let i = 0; i < Math.floor(this.food_carried / foodToReproduce); i++) {
-                    this.hill.makeOffspring(this.index);
-                    this.food_carried -= foodToReproduce;
+            if(this.food_carried > foodToReproduce.value) {
+                for(let i = 0; i < Math.floor(this.food_carried / foodToReproduce.value); i++) {
+                    this.colony.makeOffspring();
+                    this.food_carried -= foodToReproduce.value;
+                    this.colony.gatheredFood += foodToReproduce.value;
                 }
             }
         }
@@ -316,30 +306,30 @@ class Ant {
 
     step() {
         if(this.alive === false) { return; }
-        const tile = getTile(this.position.x, this.position.y);
+        const tile = this.world.getTile(this.position.x, this.position.y);
         const frontTile = this.getFrontTile();
         const leftTile = this.getLeftTile();
         const rightTile = this.getRightTile();
 
-        if(this.position.x === this.home.x && this.position.y === this.home.y) { this.home_beavieur(); }
+        if(this.position.x === this.colony.position.x && this.position.y === this.colony.position.y) { this.home_beavieur(); }
         this.reachForFood(tile);
 
         const INPUTS = [
-            this.position.x === this.hill.position.x && this.position.y === this.hill.position.y ? 1 : 0,
+            this.position.x === this.colony.position.x && this.position.y === this.colony.position.y ? 1 : 0,
             this.food_carried / 255,
-            this.energy / startingEnergy
+            this.energy / initialEnergy.value
         ];
 
         // Add noise to the input vector
         for (let i = 0; i < INPUTS.length; i++) {
-            INPUTS[i] += (Math.random() * 2 - 1) * NOISE_IN_MULTIPLIER;
+            INPUTS[i] += (Math.random() * 2 - 1) * noiseIn.value;
         }
         this.sample();
         const OUTPUT = this.brain.feedForward(this.samples, INPUTS);
 
         // Add noise to the output vector
         for (let i = 0; i < OUTPUT.length; i++) {
-            OUTPUT[i] += (Math.random() * 2 - 1) * NOISE_OUT_MULTIPLIER;
+            OUTPUT[i] += (Math.random() * 2 - 1) * noiseOut.value;
         }
 
         let maxIndex = 0;
@@ -425,16 +415,14 @@ class Ant {
     }
 
     die() {
-        const tile = getTile(this.position.x, this.position.y);
+        const tile = this.world.getTile(this.position.x, this.position.y);
         tile.addFood(this.food_carried);
         tile.ant_number--;
-        this.hill.processDeath(this.index);
+        this.colony.processDeath(this.index);
     }
 }
 
-let colonyLife = 2000;
 let generations = 1;
-let initialPopulation = 20;
 
 const VOIDANT = {
     alive: false,
@@ -442,28 +430,33 @@ const VOIDANT = {
 };
 
 class Colony {
+    world;
     position;
     age;
 
     ants;
+    brain;
     livingAnts;
-    bestGenes;
-    bestScore;
-    constructor(x, y, queenGenes = "random") {
+
+    gatheredFood;
+    constructor(x, y, world, queenGenes = "random") {
+        this.world = world;
         this.position = new Vector2D(x, y);
         this.age = 0;
 
-        this.ants = new Array(MAX_ANTS).fill(VOIDANT);
-        this.ants[0] = new Ant(this, 0);
+        this.brain = new Brain();
         if(queenGenes !== "random") {
-            this.ants[0].brain.parseParameters(queenGenes);
+            this.brain.parseParameters(queenGenes);
         }
-        this.livingAnts = 1;
-        for(let i = 0; i < initialPopulation - 1; i++) {
-            this.makeOffspring(0);
+
+        this.gatheredFood = 0;
+
+        this.ants = new Array(maxPopulation.value).fill(VOIDANT);
+        
+        this.livingAnts = initialPopulation.value;
+        for(let i = 0; i < initialPopulation.value; i++) {
+            this.ants[i] = new Ant(this, i, world);
         }
-        this.bestScore = 0;
-        this.bestGenes = this.ants[0].brain.getParameters();
     }
 
     step() {
@@ -482,28 +475,20 @@ class Colony {
 
     processDeath(index) {
         this.livingAnts--;
-        const score = this.ants[index].score;
-        if(score > this.bestScore) {
-            this.bestScore = score;
-            this.bestGenes = getMutatedBrainParameters(this.ants[index].brain);
-        }
         this.ants[index] = VOIDANT;
     }
 
-    makeOffspring(index) {
+    makeOffspring() {
         this.livingAnts++;
         const newIndex = this.getFreeIndex();
         if(newIndex === -1) {
             console.error("population overflow");
             return;
         }
-        let result = new Ant(this, newIndex);
-        const mother = this.ants[index];
-        result.brain.parseParameters(getMutatedBrainParameters(mother.brain));
-        this.ants[newIndex] = result;
+        this.ants[newIndex] = new Ant(this, newIndex, this.world);
     }
 
     createChildColony() {
-        return new Colony(this.position.x, this.position.y, this.bestGenes);
+        return new Colony(this.position.x, this.position.y, this.world, getMutatedBrainParameters(this.brain));
     }
 }

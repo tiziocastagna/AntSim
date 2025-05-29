@@ -2,13 +2,14 @@
 <html>
 <head>
     <link rel="stylesheet" type="text/css" href="./style.css">
-    <script src="./render.js"></script>
+    <script src="./app.js"></script>
+    <script src="ui.js"></script>
     <script src="./tile.js"></script>
     <script src="./game.js"></script>
     <script src="./NN.js"></script>
     <script src="BNN.js"></script>
     <script src="ant.js"></script>
-    <script src="./app.js"></script>
+    <script src="./render.js"></script>
 </head>
 <body>
     <div id="main">
@@ -31,23 +32,7 @@
             </div>
             <div id="tickspeed"> APX. TICKSPEED: 100 </div>
             <div id="generation"> GENERATION: 0</div>
-            <div> FADING SPEED: <input id="fading_speed"> </div>
-            <div> DIFFUSION: <input id="diffuse" type="checkbox"> </div>
-            <div id="initial_population_container"> INITIAL POPULATION: <input id="initial_population"> </div>
-            <div id="max_population_container"> MAX POPULATION: <input id="max_population"> </div>
-            <div id="population"> POPULATION: </div>
-            <div> COLONY LIFE: <input id="colony_life"> </div>
-            <div> INITIAL ENERGY: <input id="initial_energy"> </div>
             <div> SHOW ANTS: <input type="checkbox" id="show_ants" checked></div>
-            <div id="max_food_container"> MAX FOOD PER TILE: <input id="max_food"> </div>
-            <div id="food_refill_container"> FOOD REFILL: <input id="food_refill"> </div>
-            <div id="food_to_reproduce_container"> FOOD TO REPRODUCE: <input id="food_to_reproduce"> </div>
-            <div id="mutation_strength_container"> MUTATION STRENGTH: <input id="mutation_strength"> </div>
-            <div id="mutation_chance_container"> MUTATION CHANCE: <input id="mutation_chance"> </div>
-            <div id="noise">
-                <div id="noise_in_container">NOISE IN: <input id="noise_in"> </div>
-                <div id="noise_out_container">NOISE OUT: <input id="noise_out"></div>
-            </div>
         </div>
         <div id="grid_container">
             <div id="game_grid" class="grid"></div>

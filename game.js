@@ -3,8 +3,9 @@ let RIGHT_WIDTH = 50;
 let UP_HEIGHT = 50;
 let DOWN_HEIGHT = 50;
 
-let colony;
-let MAX_ANTS = 1000;
+let concurrentSimulations = 20;
+let sims = [];
+let MAX_ANTS = 100;
 
 function setUpCamera(gridContainer) {
     for(let i = -CAMERA_RADIUS; i <= CAMERA_RADIUS; i++) {
@@ -16,21 +17,14 @@ function setUpCamera(gridContainer) {
     }
 }
 
-function buildTiles() {
-    tiles = [];
-    for(let i = -DOWN_HEIGHT; i <= UP_HEIGHT; i++) {
-        let row = []
-        for(let j = -LEFT_WIDTH; j <= RIGHT_WIDTH; j++) {
-            row.push(new Tile(j, i));
-        }
-        tiles.push(row);
+function setUpSimulations() {
+    for(let i = 0; i < concurrentSimulations; i++) {
+        sims.push(new Simulation());
     }
 }
 
 function update() {
-    if(readyToRender === true) {
-        render();
-    }
+    render(sims[observedIndex].world);
 }
 
 function moveUp() {
@@ -53,18 +47,17 @@ function moveRight() {
     update();
 }
 
-let ticks = 0;
+let ticks = 1;
 
 function tick() {
-    colony.step();
-    if(ticks % 10 === 0) {
-        diffuse ? updateTiles() : only_fade();
-        population.innerHTML = "POPULATION: " + colony.livingAnts;
+    for(let i = 0; i < concurrentSimulations; i++) {
+        sims[i].tick();
     }
-    update();
+    if(ticks % colonyLife.value === 0) {
+        evolveSimulations();
+    }
+    render(sims[observedIndex].world);
     ticks++;
-    // Restart
-    if(colony.livingAnts === 0 || colony.age > colonyLife) { restart(); }
 }
 
 let tickspeed = 100;
@@ -104,14 +97,6 @@ function speed_down() {
         interval = setInterval(tick, tickspeed);
         updateTickSpeedLable();
     }
-}
-
-function restart() {
-    console.log("new Generation!!", colony.bestScore);
-    generations++;
-    generations_element.innerHTML = "GENERATIONS: " + generations;
-    buildTiles();
-    colony = colony.createChildColony();
 }
 
 function toggle_showFood() {
@@ -164,7 +149,6 @@ function changeWorldRight() {
 }
 
 
-// NOT YET IMPLEMENTED
 class Simulation {
     colony;
     world;
@@ -172,15 +156,15 @@ class Simulation {
     ticks;
     constructor() {
         this.ticks = 0;
-        this.colony = new Colony(0, 0);
         this.world = new World();
+        this.colony = new Colony(0, 0, this.world);
     }
     tick() {
         for(let ant of this.colony.ants) {
             ant.step();
         }
         if(ticks % 10 === 0) {
-            this.world.updateTiles();
+            this.world.fade();
         }
         this.ticks++;
 
@@ -192,40 +176,28 @@ class Simulation {
     }
 }
 
-class RenderedSimulation extends Simulation {
-    constructor() {
-        super();
+function evolveSimulations() {
+    let bestIndex = 0;
+    let bestFitness = 0;
+    for(let i = 0; i < concurrentSimulations; i++) {
+        let sim = sims[i];
+        fitness = sim.colony.gatheredFood;
+        if(fitness > bestFitness) {
+            bestFitness = fitness;
+            bestIndex = i;
+        };
     }
-    render() {
-        for (let i = -CAMERA_RADIUS; i <= CAMERA_RADIUS; i++) {
-            for (let j = -CAMERA_RADIUS; j <= CAMERA_RADIUS; j++) {
-                const visualSquare = visualSquares[(CAMERA_RADIUS + i) * (CAMERA_RADIUS * 2 + 1) + j + CAMERA_RADIUS];
-
-                visualSquare.style.backgroundColor = 'white';
-                visualSquare.style.backgroundImage = 'none';
-
-                if(i === 0 && j === 0) {
-                    visualSquare.style.backgroundColor = 'red';
-                    continue;
-                }
-
-                const world_render_x = cameraX + j;
-                const world_render_y = cameraY - i;     // Show Up up and Down down
-                const square = this.getTile(world_render_x, world_render_y);
-                if(square) {
-                    let color;
-                    if(render_mode == "normal") {
-                        color = square.render();
-                    }
-                    if(render_mode == "chemical") {
-                        color = square.render_chemical();
-                    }
-                    if(render_mode == "food") {
-                        color = square.render_food();
-                    }
-                    visualSquare.style.backgroundColor = color;
-                }
-            }
+    observedIndex = bestIndex;
+    console.log("New Generation, Best Fitness: " + bestFitness);
+    generations++;
+    generations_element.innerHTML = "GENERATION: " + generations;
+    let bestBrain = sims[bestIndex].colony.brain;
+    for(let i = 0; i < concurrentSimulations; i++) {
+        sims[i] = new Simulation();
+        if(i !== bestIndex) {
+            sims[i].colony.brain.parseParameters(getMutatedBrainParameters(bestBrain));
+        } else {
+            sims[i].colony.brain.parseParameters(bestBrain.getParameters());
         }
     }
 }
