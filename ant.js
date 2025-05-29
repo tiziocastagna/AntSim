@@ -71,7 +71,7 @@ class Brain {
             {type: "normal", input_size: 60, output_size: 16},
         ]);
         this.network = new CrossNetwork([
-            {type: "normal", input_size: 16 + 3, output_size: 18}
+            {type: "normal", input_size: 16 + 3, output_size: 9}
         ]);
     }
     spacialFeedForward(spacialInput) {
@@ -357,48 +357,12 @@ class Ant {
             let chemical_quantity = Math.max(0, activation_strength) * 255;
             tile.addChemical(2, chemical_quantity);
         } else if(maxIndex === 6) {
-            let activation_strength = OUTPUT[maxIndex];
-            let chemical_quantity = Math.max(0, activation_strength) * 255;
-            leftTile.addChemical(0, chemical_quantity);
-        } else if(maxIndex === 7) {
-            let activation_strength = OUTPUT[maxIndex];
-            let chemical_quantity = Math.max(0, activation_strength) * 255;
-            leftTile.addChemical(1, chemical_quantity);
-        } else if(maxIndex === 8) {
-            let activation_strength = OUTPUT[maxIndex];
-            let chemical_quantity = Math.max(0, activation_strength) * 255;
-            leftTile.addChemical(2, chemical_quantity);
-        } else if(maxIndex === 9) {
-            let activation_strength = OUTPUT[maxIndex];
-            let chemical_quantity = Math.max(0, activation_strength) * 255;
-            rightTile.addChemical(0, chemical_quantity);
-        } else if(maxIndex === 10) {
-            let activation_strength = OUTPUT[maxIndex];
-            let chemical_quantity = Math.max(0, activation_strength) * 255;
-            rightTile.addChemical(1, chemical_quantity);
-        } else if(maxIndex === 11) {
-            let activation_strength = OUTPUT[maxIndex];
-            let chemical_quantity = Math.max(0, activation_strength) * 255;
-            rightTile.addChemical(2, chemical_quantity);
-        } else if(maxIndex === 12) {
-            let activation_strength = OUTPUT[maxIndex];
-            let chemical_quantity = Math.max(0, activation_strength) * 255;
-            frontTile.addChemical(0, chemical_quantity);
-        } else if(maxIndex === 13) {
-            let activation_strength = OUTPUT[maxIndex];
-            let chemical_quantity = Math.max(0, activation_strength) * 255;
-            frontTile.addChemical(1, chemical_quantity);
-        } else if(maxIndex === 14) {
-            let activation_strength = OUTPUT[maxIndex];
-            let chemical_quantity = Math.max(0, activation_strength) * 255;
-            frontTile.addChemical(2, chemical_quantity);
-        } else if(maxIndex === 15) {
             this.turn_back();
-        } else if(maxIndex === 16) {
+        } else if(maxIndex === 7) {
             this.turn_left();
-        } else if(maxIndex === 17) {
+        } else if(maxIndex === 8) {
             this.turn_right();
-        } else if(maxIndex === 18) {
+        } else if(maxIndex === 9) {
             // DO NOTHING
         }
         this.removeEnergy(metabolism);

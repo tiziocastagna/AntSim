@@ -44,6 +44,7 @@ class Stat {
 }
 
 let fadingCoefficent;
+let concurrentSimulations;
 let initialPopulation;
 let maxPopulation;
 let population;
@@ -60,14 +61,15 @@ let noiseOut;
 
 function setUpButtons() {
     fadingCoefficent = new MutbleHypervalue("FADING COEFFICENT", "float", 0.9);
+    concurrentSimulations = new MutbleHypervalue("CONCURRENT SIMULATIONS", "int", 100);
     initialPopulation = new MutbleHypervalue("INITIAL POPULATION", "int", 5);
     maxPopulation = new MutbleHypervalue("MAX POPULATION", "int", 100);
     population = new Stat("POPULATION", initialPopulation.value);
-    colonyLife = new MutbleHypervalue("COLONY LIFE", "int", 2000);
+    colonyLife = new MutbleHypervalue("COLONY LIFE", "int", 1000);
     initialEnergy = new MutbleHypervalue("INITIAL ENERGY", "int", 500);
     initialFood = new MutbleHypervalue("INITIAL FOOD", "int", 30);
     maxFood = new MutbleHypervalue("MAX FOOD", "int", 50);
-    foodRefill = new MutbleHypervalue("FOOD REFILL", "int", 4);
+    foodRefill = new MutbleHypervalue("FOOD REFILL", "int", 0.1);
     foodToReproduce = new MutbleHypervalue("FOOD TO REPRODUCE", "int", 70);
     mutationStrength = new MutbleHypervalue("MUTATION STRENGTH", "float", 0.1);
     mutationChance = new MutbleHypervalue("MUTATION CHANCE", "float", 0.01);

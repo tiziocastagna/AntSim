@@ -146,18 +146,15 @@ class CrossNetwork {
     }
 }
 
-let MUTATION_CHANCE = 0.01;
-let MUTATION_STRENGTH = 0.1;
-
 function getMutatedParameters(N) {
     let parameters = N.getParameters();
     for(let i = 0; i < parameters.length; i++) {
         if(typeof(parameters[i]) == 'object') {
             for(let j = 0; j < parameters[i].length; j++) {
-                if(Math.random() < MUTATION_CHANCE) { parameters[i][j] = parameters[i][j] === 1 ? 0 : 1; }
+                if(Math.random() < mutationChance.value) { parameters[i][j] = parameters[i][j] === 1 ? 0 : 1; }
             }
         } else {
-            if(Math.random() < MUTATION_CHANCE) { parameters[i] += (Math.random() * 2 - 1) * MUTATION_STRENGTH; }
+            if(Math.random() < mutationChance.value) { parameters[i] += (Math.random() * 2 - 1) * mutationStrength.value; }
         }
     }
     return parameters;

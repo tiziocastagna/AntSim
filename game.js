@@ -1,9 +1,8 @@
-let LEFT_WIDTH = 50;
-let RIGHT_WIDTH = 50;
-let UP_HEIGHT = 50;
-let DOWN_HEIGHT = 50;
+let LEFT_WIDTH = 20;
+let RIGHT_WIDTH = 20;
+let UP_HEIGHT = 20;
+let DOWN_HEIGHT = 20;
 
-let concurrentSimulations = 20;
 let sims = [];
 let MAX_ANTS = 100;
 
@@ -18,7 +17,7 @@ function setUpCamera(gridContainer) {
 }
 
 function setUpSimulations() {
-    for(let i = 0; i < concurrentSimulations; i++) {
+    for(let i = 0; i < concurrentSimulations.value; i++) {
         sims.push(new Simulation());
     }
 }
@@ -50,7 +49,7 @@ function moveRight() {
 let ticks = 1;
 
 function tick() {
-    for(let i = 0; i < concurrentSimulations; i++) {
+    for(let i = 0; i < concurrentSimulations.value; i++) {
         sims[i].tick();
     }
     if(ticks % colonyLife.value === 0) {
@@ -172,14 +171,14 @@ class Simulation {
     }
     restart() {
         this.world.blank();
-        this.colony = this.colony.createChildColony();
+        this.colony = new Colony(0, 0, this.world);
     }
 }
 
 function evolveSimulations() {
     let bestIndex = 0;
     let bestFitness = 0;
-    for(let i = 0; i < concurrentSimulations; i++) {
+    for(let i = 0; i < sims.length; i++) {
         let sim = sims[i];
         fitness = sim.colony.gatheredFood;
         if(fitness > bestFitness) {
@@ -192,7 +191,7 @@ function evolveSimulations() {
     generations++;
     generations_element.innerHTML = "GENERATION: " + generations;
     let bestBrain = sims[bestIndex].colony.brain;
-    for(let i = 0; i < concurrentSimulations; i++) {
+    for(let i = 0; i < concurrentSimulations.value; i++) {
         sims[i] = new Simulation();
         if(i !== bestIndex) {
             sims[i].colony.brain.parseParameters(getMutatedBrainParameters(bestBrain));
