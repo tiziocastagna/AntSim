@@ -71,7 +71,7 @@ class Brain {
             {type: "normal", input_size: 60, output_size: 16},
         ]);
         this.network = new CrossNetwork([
-            {type: "normal", input_size: 16 + 3, output_size: 9}
+            {type: "normal", input_size: 16 + 4, output_size: 9}
         ]);
     }
     spacialFeedForward(spacialInput) {
@@ -307,9 +307,6 @@ class Ant {
     step() {
         if(this.alive === false) { return; }
         const tile = this.world.getTile(this.position.x, this.position.y);
-        const frontTile = this.getFrontTile();
-        const leftTile = this.getLeftTile();
-        const rightTile = this.getRightTile();
 
         if(this.position.x === this.colony.position.x && this.position.y === this.colony.position.y) { this.home_beavieur(); }
         this.reachForFood(tile);
@@ -317,7 +314,8 @@ class Ant {
         const INPUTS = [
             this.position.x === this.colony.position.x && this.position.y === this.colony.position.y ? 1 : 0,
             this.food_carried / 255,
-            this.energy / initialEnergy.value
+            this.energy / initialEnergy.value,
+            tile.ant_number / maxPopulation.value
         ];
 
         // Add noise to the input vector
@@ -385,8 +383,6 @@ class Ant {
         this.colony.processDeath(this.index);
     }
 }
-
-let generations = 1;
 
 const VOIDANT = {
     alive: false,

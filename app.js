@@ -1,7 +1,9 @@
 let settingsMenu;
+let showIndex;
 
 document.addEventListener('DOMContentLoaded', function() {
     settingsMenu = document.getElementById("settings");
+    showIndex = document.getElementById("show_index");
     setUpButtons();
     const gridContainer = document.getElementById('game_grid');
     setUpCamera(gridContainer);
@@ -20,23 +22,16 @@ document.addEventListener('keydown', function(event) {
     }
 });
 
-let showTickSpeed;
 let showSettings;
 
 let play_button;
 
-let generations_element;
-
 let showAnts = true;
 
 window.onload = function() {
-    showTickSpeed = document.getElementById("tickspeed");
     showSettings = document.getElementById("settings");
     play_button = document.getElementById("play_stop_button");
-    generations_element = document.getElementById("generation");
     
-    generations_element.innerHTML = "GENERATION: " + generations;
-
     let show_ants_box = document.getElementById("show_ants");
     show_ants_box.checked = true;
     show_ants_box.onchange = function() {
@@ -45,11 +40,6 @@ window.onload = function() {
     };
     
     update();
-}
-
-function updateTickSpeedLable() {
-    showTickSpeed.innerHTML = "APX. TICKSPEED: ";
-    tickspeed <= 1 ? showTickSpeed.innerHTML += "MAX" : showTickSpeed.innerHTML += Math.ceil(tickspeed);
 }
 
 function play_stop() {

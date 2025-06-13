@@ -23,19 +23,22 @@
                         <th> RIGHT </th>
                     </tr>
                     <tr>
-                        <th> <input onchange=changeWorldUp() id="up" value="50"> </th>
-                        <th> <input onchange=changeWorldDown() id="down" value="50"> </th>
-                        <th> <input onchange=changeWorldLeft() id="left" value="50"> </th>
-                        <th> <input onchange=changeWorldRight() id="right" value="50"> </th>
+                        <th> <input onchange=changeWorldUp() id="up" value="20"> </th>
+                        <th> <input onchange=changeWorldDown() id="down" value="20"> </th>
+                        <th> <input onchange=changeWorldLeft() id="left" value="20"> </th>
+                        <th> <input onchange=changeWorldRight() id="right" value="20"> </th>
                     </tr>
                 </table>
             </div>
-            <div id="tickspeed"> APX. TICKSPEED: 100 </div>
-            <div id="generation"> GENERATION: 0</div>
             <div> SHOW ANTS: <input type="checkbox" id="show_ants" checked></div>
         </div>
-        <div id="grid_container">
-            <div id="game_grid" class="grid"></div>
+        <div id="grid_navigation_wrapper" style="display: flex; align-items: center; justify-content: center; padding: 10px 0;">
+            <button id="grid_nav_left" onclick=gridNavigateLeft() onmouseenter=showGridIndex() onmouseleave=hideGridIndex() style="font-size: 2.5em; background: none; border: none; cursor: pointer; padding: 0 15px; margin-right: 10px;">◀</button>
+            <div id="grid_container">
+                <div id="game_grid" class="grid"></div>
+                <div id="show_index"></div>
+            </div>
+            <button id="grid_nav_right" onclick=gridNavigateRight() onmouseenter=showGridIndex() onmouseleave=hideGridIndex() style="font-size: 2.5em; background: none; border: none; cursor: pointer; padding: 0 15px; margin-left: 10px;">▶</button>
         </div>
     </div>
     <div id="control_bar">

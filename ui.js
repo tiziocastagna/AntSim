@@ -36,13 +36,16 @@ class Stat {
         this.lable = lable;
         this.div = document.createElement("div");
         settingsMenu.appendChild(this.div);
-        this.div.innerHTML = lable + ": " + defaultValue;
+        this.value = defaultValue;
+        this.div.innerHTML = lable + ": " + this.value;
     }
-    update(value) {
-        this.div.innerHTML = this.lable + ": " + value;
+    update() {
+        this.div.innerHTML = this.lable + ": " + Math.floor(this.value);
     }
 }
 
+let tickspeed;
+let generations;
 let fadingCoefficent;
 let concurrentSimulations;
 let initialPopulation;
@@ -51,7 +54,7 @@ let population;
 let colonyLife;
 let initialEnergy;
 let initialFood;
-let maxFood;
+let maxRefill;
 let foodRefill;
 let foodToReproduce;
 let mutationStrength;
@@ -60,6 +63,8 @@ let noiseIn;
 let noiseOut;
 
 function setUpButtons() {
+    tickspeed = new Stat("APX. TICKSPEED", 100);
+    generations = new Stat("GENERATIONS", 0);
     fadingCoefficent = new MutbleHypervalue("FADING COEFFICENT", "float", 0.9);
     concurrentSimulations = new MutbleHypervalue("CONCURRENT SIMULATIONS", "int", 100);
     initialPopulation = new MutbleHypervalue("INITIAL POPULATION", "int", 5);
@@ -68,7 +73,7 @@ function setUpButtons() {
     colonyLife = new MutbleHypervalue("COLONY LIFE", "int", 1000);
     initialEnergy = new MutbleHypervalue("INITIAL ENERGY", "int", 500);
     initialFood = new MutbleHypervalue("INITIAL FOOD", "int", 30);
-    maxFood = new MutbleHypervalue("MAX FOOD", "int", 50);
+    maxRefill = new MutbleHypervalue("MAX FOOD TO REFILL", "int", 50);
     foodRefill = new MutbleHypervalue("FOOD REFILL", "int", 0.1);
     foodToReproduce = new MutbleHypervalue("FOOD TO REPRODUCE", "int", 70);
     mutationStrength = new MutbleHypervalue("MUTATION STRENGTH", "float", 0.1);

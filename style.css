@@ -23,6 +23,9 @@ body {
     background-repeat: no-repeat; /* Prevents tiling */
     background-position: center; /* Centers the image */
     image-rendering: crisp-edges; /* Ensures sharp edges for pixel art */
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 #control_bar {
@@ -45,6 +48,7 @@ body {
     height: 630px;
     display: flex;
     justify-self: center;
+    position: relative; /* Establish positioning context for #show_index */
 }
 
 #main {
@@ -84,4 +88,38 @@ body {
 
 table {
     width: 100%;
+}
+
+#grid_navigation_wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 0;
+}
+
+.grid-nav-button {
+    font-size: 2.5em;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0 15px;
+}
+
+#grid_nav_left {
+    margin-right: 10px;
+}
+
+#grid_nav_right {
+    margin-left: 10px;
+}
+
+#show_index {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* Center the element precisely */
+    width: 30px; /* Match tile width */
+    height: 30px; /* Match tile height */
+    display: none;
+    z-index: 101; /* Ensure it's on top of grid */
 }

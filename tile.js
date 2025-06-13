@@ -107,7 +107,7 @@ function fade() {
             tile.chemicalRGB[0] *= fadingCoefficent.value;
             tile.chemicalRGB[1] *= fadingCoefficent.value;
             tile.chemicalRGB[2] *= fadingCoefficent.value;
-            if(tile.food_channel < maxFood.value) {
+            if(tile.food_channel < maxRefill.value) {
                 tile.food_channel += foodRefill.value;
             }
             // TODO: find a more elegant solution
@@ -152,7 +152,7 @@ class World {
                 tile.chemicalRGB[0] *= fadingCoefficent.value;
                 tile.chemicalRGB[1] *= fadingCoefficent.value;
                 tile.chemicalRGB[2] *= fadingCoefficent.value;
-                if(tile.food_channel < maxFood.value) {
+                if(tile.food_channel < maxRefill.value) {
                     tile.food_channel += foodRefill.value;
                 }
                 // TODO: find a more elegant solution

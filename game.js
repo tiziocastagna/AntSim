@@ -4,7 +4,6 @@ let UP_HEIGHT = 20;
 let DOWN_HEIGHT = 20;
 
 let sims = [];
-let MAX_ANTS = 100;
 
 function setUpCamera(gridContainer) {
     for(let i = -CAMERA_RADIUS; i <= CAMERA_RADIUS; i++) {
@@ -46,6 +45,26 @@ function moveRight() {
     update();
 }
 
+function gridNavigateLeft() {
+    if(observedIndex > 0)
+        observedIndex--;
+    showIndex.innerHTML = observedIndex + 1;
+}
+
+function gridNavigateRight() {
+    if(observedIndex < sims.length - 1)
+        observedIndex++;
+    visualSquares[220].innerHTML = observedIndex + 1;
+}
+
+function showGridIndex() {
+    visualSquares[220].innerHTML = observedIndex + 1;
+}
+
+function hideGridIndex() {
+    visualSquares[220].innerHTML = "";
+}
+
 let ticks = 1;
 
 function tick() {
@@ -59,7 +78,6 @@ function tick() {
     ticks++;
 }
 
-let tickspeed = 100;
 let interval;
 
 function toggle_play() {
@@ -68,33 +86,31 @@ function toggle_play() {
         interval = null;
         update();
     } else {
-        interval = setInterval(tick, tickspeed);
-        updateTickSpeedLable();
+        interval = setInterval(tick, tickspeed.value);
     }
 }
 
 function speed_up() {
     if(interval) {
-        if(tickspeed * 0.9 < 1) {
-            tickspeed = 1;
-            return;
-        } else if(tickspeed * 0.9 <= 10) {
-            tickspeed -= 1;
-        } else if(tickspeed ) {
-            tickspeed *= 0.9;
+        if(tickspeed.value * 0.9 < 1) {
+            tickspeed.value = 1;
+        } else if(tickspeed.value * 0.9 <= 10) {
+            tickspeed.value -= 1;
+        } else {
+            tickspeed.value *= 0.9;
         }
         clearInterval(interval);
-        interval = setInterval(tick, tickspeed);
-        updateTickSpeedLable();
+        interval = setInterval(tick, Math.floor(tickspeed.value));
+        tickspeed.update();
     }
 }
 
 function speed_down() {
     if(interval) {
-        tickspeed *= 1.1;
+        tickspeed.value *= 1.1;
         clearInterval(interval);
-        interval = setInterval(tick, tickspeed);
-        updateTickSpeedLable();
+        interval = setInterval(tick, Math.floor(tickspeed.value));
+        tickspeed.update();
     }
 }
 
@@ -188,8 +204,8 @@ function evolveSimulations() {
     }
     observedIndex = bestIndex;
     console.log("New Generation, Best Fitness: " + bestFitness);
-    generations++;
-    generations_element.innerHTML = "GENERATION: " + generations;
+    generations.value++;
+    generations.update();
     let bestBrain = sims[bestIndex].colony.brain;
     for(let i = 0; i < concurrentSimulations.value; i++) {
         sims[i] = new Simulation();
