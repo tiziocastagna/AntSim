@@ -1,9 +1,7 @@
 let settingsMenu;
-let showIndex;
 
 document.addEventListener('DOMContentLoaded', function() {
     settingsMenu = document.getElementById("settings");
-    showIndex = document.getElementById("show_index");
     setUpButtons();
     const gridContainer = document.getElementById('game_grid');
     setUpCamera(gridContainer);

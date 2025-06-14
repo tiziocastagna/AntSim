@@ -11,6 +11,21 @@ const CAMERA_RADIUS = 10;       // Due to grid size. Pay attention if changing
 
 let observedIndex = 0;
 
+function centerText(text, color) {
+    visualSquares[220].style.color = color;
+    visualSquares[220].innerText = text;
+}
+
+function grayscale(t) {
+    for(let i = 0; i < visualSquares.length; i++) {
+        const visualSquare = visualSquares[i];
+        const x = i % 21;
+        const y = Math.floor(i / 21);
+        const gray = (x + y + t) * 10 % 255;
+        visualSquare.style.backgroundColor = "rgb(" + String(gray) + "," + String(gray) + "," + String(gray) + ")"
+    }
+}
+
 function render(world) {
     population.update();
     for (let i = -CAMERA_RADIUS; i <= CAMERA_RADIUS; i++) {

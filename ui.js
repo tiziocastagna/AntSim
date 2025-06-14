@@ -81,3 +81,41 @@ function setUpButtons() {
     noiseIn = new MutbleHypervalue("NOISE IN", "float", 0);
     noiseOut = new MutbleHypervalue("NOISE OUT", "float", 0);
 }
+
+function gridNavigateLeft() {
+    if(observedIndex > 0)
+        observedIndex--;
+}
+
+function gridNavigateRight() {
+    if(observedIndex < sims.length - 1)
+        observedIndex++;
+}
+
+function showGridIndexLeft(event) {
+    event.target.innerHTML = observedIndex;     // (+1 -1)
+}
+
+function showGridIndexRight(event) {
+    event.target.innerHTML = observedIndex + 2; // (+1 +1)
+}
+
+function hideGridIndexLeft(event) {
+    event.target.innerHTML = "◀";
+}
+
+function hideGridIndexRight(event) {
+    event.target.innerHTML = "▶";
+}
+
+function waveEffet(conclusion) {
+    let t = 0;
+    let interval = setInterval(() => {
+        grayscale(t);
+        if(t >= 35) {
+            conclusion();
+            clearInterval(interval);
+        }
+        t++;
+    }, 100);
+}

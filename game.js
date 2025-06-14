@@ -5,6 +5,8 @@ let DOWN_HEIGHT = 20;
 
 let sims = [];
 
+let canMove = true;
+
 function setUpCamera(gridContainer) {
     for(let i = -CAMERA_RADIUS; i <= CAMERA_RADIUS; i++) {
         for(let l = -CAMERA_RADIUS; l <= CAMERA_RADIUS; l++) {
@@ -26,43 +28,27 @@ function update() {
 }
 
 function moveUp() {
+    if(!canMove) { return; }
     cameraY++;
     update();
 }
 
 function moveDown() {
+    if(!canMove) { return; }
     cameraY--;
     update();
 }
 
 function moveLeft() {
+    if(!canMove) { return; }
     cameraX--;
     update();
 }
 
 function moveRight() {
+    if(!canMove) { return; }
     cameraX++;
     update();
-}
-
-function gridNavigateLeft() {
-    if(observedIndex > 0)
-        observedIndex--;
-    showIndex.innerHTML = observedIndex + 1;
-}
-
-function gridNavigateRight() {
-    if(observedIndex < sims.length - 1)
-        observedIndex++;
-    visualSquares[220].innerHTML = observedIndex + 1;
-}
-
-function showGridIndex() {
-    visualSquares[220].innerHTML = observedIndex + 1;
-}
-
-function hideGridIndex() {
-    visualSquares[220].innerHTML = "";
 }
 
 let ticks = 1;
@@ -92,10 +78,12 @@ function toggle_play() {
 
 function speed_up() {
     if(interval) {
-        if(tickspeed.value * 0.9 < 1) {
-            tickspeed.value = 1;
-        } else if(tickspeed.value * 0.9 <= 10) {
-            tickspeed.value -= 1;
+        if(tickspeed.value * 0.9 <= 10) {
+            if(tickspeed.value -1 < 1) {
+                tickspeed.value = 1;
+            } else {
+                tickspeed.value -= 1;
+            }
         } else {
             tickspeed.value *= 0.9;
         }
@@ -202,10 +190,21 @@ function evolveSimulations() {
             bestIndex = i;
         };
     }
+    // estethics
     observedIndex = bestIndex;
     console.log("New Generation, Best Fitness: " + bestFitness);
     generations.value++;
     generations.update();
+    toggle_play();
+    canMove = false;
+    centerText(observedIndex + 1, "blue");
+    waveEffet(() => {
+        centerText("", "white");
+        toggle_play();
+        canMove = true;
+    });
+
+    // set up new generation
     let bestBrain = sims[bestIndex].colony.brain;
     for(let i = 0; i < concurrentSimulations.value; i++) {
         sims[i] = new Simulation();
